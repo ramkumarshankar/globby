@@ -1,0 +1,42 @@
+{
+  "name": "globby",
+  "version": "1.0.0",
+  "description": "virtual interactive character to promote health and well-being in the workplace",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ramkumarshankar/globby.git"
+  },
+  "author": "Ramkumar Shankar",
+  "license": "UNLICENSED",
+  "bugs": {
+    "url": "https://github.com/ramkumarshankar/globby/issues"
+  },
+  "homepage": "https://github.com/ramkumarshankar/globby#readme",
+  "dependencies": {
+    "ejs": "^2.4.1",
+    "express": "^4.13.4",
+    "jquery": "^2.2.3",
+    "p5": "^0.5.0",
+    "physics": "^1.0.1",
+    "serve-static": "^1.10.2",
+    "socket.io": "^1.4.6"
+  },
+  "devDependencies": {
+    "browserify": "^13.0.1",
+    "del": "^2.2.0",
+    "gulp": "^3.9.1",
+    "gulp-concat": "^2.6.0",
+    "gulp-preprocess": "^2.0.0",
+    "gulp-rename": "^1.2.2",
+    "gulp-replace": "^0.5.4",
+    "gulp-sourcemaps": "^1.6.0",
+    "gulp-uglify": "^1.5.3",
+    "gulp-util": "^3.0.7",
+    "vinyl-buffer": "^1.0.0",
+    "vinyl-source-stream": "^1.1.0"
+  }
+}
