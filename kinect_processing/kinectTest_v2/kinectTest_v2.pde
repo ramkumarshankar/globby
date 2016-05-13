@@ -142,7 +142,6 @@ void draw()
       //if the status of bouncing is true
       //else send the mirroing data
       mirrorData();
-      
 
     }
     
@@ -160,7 +159,7 @@ void draw()
 
         vertex(com.x,com.y,com.z - 15);
         vertex(com.x,com.y,com.z + 15);
-      endShape();
+        endShape();
       
       fill(0,255,100);
       text(Integer.toString(userList[i]),com.x,com.y,com.z);
@@ -225,13 +224,24 @@ void getJointPosition(int userId){
   //detect the status of boucing and spliting
 }
 
+
 void mirrorData(){
    float baseDis = dist(rightShoulderPos.x,rightShoulderPos.y, leftShoulderPos.x, leftShoulderPos.y);
    float headMove = abs(headPos.x - torsoPos.x);
+   String direction; 
    
    float headMovePortion = headMove/baseDis;
    int frames = 20;
    int headMoveFinalData = 0;
+   
+//   println("headPos.x - torsoPos.x: " + (headPos.x - torsoPos.x));
+   
+   if((headPos.x - torsoPos.x)<0){
+    direction = "right"; 
+   } else if((headPos.x - torsoPos.x)>0){
+    direction = "left"; 
+   } else 
+     direction = "center";
    
    if(headMovePortion > 0.1){
     headMoveFinalData = (int)(frames*((headMovePortion-0.1)/0.9)); 
@@ -239,9 +249,9 @@ void mirrorData(){
    
    print("headMove: " + (int)headMove);
    print("          ");
-   print("persentage: " + (int)(headMovePortion*100));
+   print("frame: " + headMoveFinalData);
    print("          ");
-   println("frame: " + headMoveFinalData);
+   println("direction: " + direction);
    
 }
 
