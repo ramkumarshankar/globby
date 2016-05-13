@@ -27,6 +27,7 @@ var socket = io.connect('http://localhost:8081');
 socket.on('update affect', function(value) {
   affectValue = value;
   console.log(affectValue);
+  loop();
 });
 socket.on('start', function (data) {
   startBreathe = data;
@@ -54,6 +55,7 @@ function setup() {
   background(51);
   console.log("I'm the server");
   socket.emit('server', 'connected');
+  noLoop();
 }
 
 function draw() {
@@ -64,7 +66,9 @@ function draw() {
     console.log(nextAnimation);
   }
   
-  runAnimation();
+  if (nextAnimation >= 0) {
+    runAnimation(); 
+  }
 
 }
 
@@ -81,24 +85,28 @@ function chooseAnimationBasedOnAffect (affectVal) {
     
   }
   //Sad state
-  if (affectVal <= 0.4) {
+  else if (affectVal <= 0.4) {
     
   }
   //Bored state
-  if (affectVal <= 0.6) {
+  else if (affectVal <= 0.6) {
     
   }
   //Happy state
-  if (affectVal <= 0.8) {
+  else if (affectVal <= 0.8) {
     var numPossibleAnimations = happyAnimationsList.length;
     nextAnimation = Math.floor(Math.random() * (numPossibleAnimations));
     currentAnimation  = happyAnimationsList[nextAnimation];
-  }
-  //Excited state
-  if (affectVal <= 1.0) {
     
   }
-  bAnimProgress = true;
+  //Excited state
+  else if (affectVal <= 1.0) {
+    
+  }
+  
+  if (nextAnimation >= 0) {
+    bAnimProgress = true; 
+  }
 }
 
 function runAnimation () {
