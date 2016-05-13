@@ -18,17 +18,20 @@ var app = express();
 var vicManager = require("./js/server/vicmanager.js");
 var characterManager = new vicManager();
 
+//Keep track of the 'server' - the socket controlling globby
+var serverSocket;
+var serverID = -1; //not really used now
+
 app.set('view engine', 'ejs');
 
 server.listen(8081);
 
 io.on('connection', function (socket) {
-  socket.emit('news', { hello: 'world' });
-  socket.on('my other event', function (data) {
-    console.log(data);
-  });
-  socket.on('MOVE', function (data) {
-    console.log(data);
+  socket.on('server', function() {
+    serverID = 1; //TODO? - manage clients?
+    serverSocket = socket.id;
+    console.log("We have a server!");
+    socket.emit('update affect', characterManager.getAffectValue());
   });
 });
 
@@ -45,8 +48,6 @@ wss.on('connection', function connection(ws) {
     console.log("event: " + msgFromProcessing.event);
     console.log("value " + msgFromProcessing.value);
   });
-
-  ws.send('Hi Jason!\n');
 });
 
 app.get('/', function(req, res) {
