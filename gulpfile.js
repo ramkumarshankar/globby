@@ -16,12 +16,12 @@ var del = require('del');
 gulp.task('browserify', function () {
   // set up the browserify instance on a task basis
   var b = browserify({
-    entries: './app/js/globby.js',
+    entries: './app/js/vic.js',
     debug: true
   });
 
   return b.bundle()
-    .pipe(source('globby-bundle.js'))
+    .pipe(source('vic-bundle.js'))
     .pipe(buffer())
     .pipe(sourcemaps.init({loadMaps: false}))
         // Add transformation tasks to the pipeline here.
@@ -33,53 +33,58 @@ gulp.task('browserify', function () {
 });
 
 //Our tasks to build snake
-gulp.task('globby-app', function() {
+gulp.task('vic-app', function() {
   return gulp.src('./app/app.js')
-    .pipe(preprocess({context: { MODULE: 'globby', NODE_ENV: 'development'}}))
+    .pipe(preprocess({context: { MODULE: 'vic', NODE_ENV: 'development'}}))
     .pipe(gulp.dest('build'));
 });
 
-gulp.task('globby-views', function() {
+gulp.task('vic-views', function() {
   return gulp.src('./app/views/**/*.ejs')
-    .pipe(preprocess({context: { MODULE: 'globby'}}))
+    .pipe(preprocess({context: { MODULE: 'vic'}}))
     .pipe(gulp.dest('./build/views/'));
 });
 
-gulp.task('globby-js', function() {
+gulp.task('vic-js', function() {
   return gulp.src('./app/js/*.js')
-    .pipe(preprocess({context: { MODULE: 'globby'}}))
+    .pipe(preprocess({context: { MODULE: 'vic'}}))
     .pipe(gulp.dest('./build/js/'));
 });
 
-gulp.task('globby-lib-js', function() {
+gulp.task('vic-server-js', function() {
+  return gulp.src('./app/js/server/*.js')
+    .pipe(preprocess({context: { MODULE: 'vic'}}))
+    .pipe(gulp.dest('./build/js/server/'));
+});
+
+gulp.task('vic-lib-js', function() {
   return gulp.src('./app/js/lib/*.js')
-    .pipe(preprocess({context: { MODULE: 'globby'}}))
+    .pipe(preprocess({context: { MODULE: 'vic'}}))
     .pipe(gulp.dest('./build/js/lib'));
 });
 
-gulp.task('globby-images', function() {
+gulp.task('vic-images', function() {
   return gulp.src('./app/images/*')
     .pipe(gulp.dest('./build/images'));
 });
 
-gulp.task('globby-clean', ['browserify', 'globby-js'], function() {
+gulp.task('vic-clean', ['vic-js'], function() {
 return del([
     // Delete unnecessary files after build
-    './build/js/globby.js'
+    // './build/js/globby.js'
   ]);
 });
 
-gulp.task('build', ['browserify', 'globby-app', 'globby-views', 'globby-lib-js', 'globby-js', 'globby-images']);
+gulp.task('build', ['vic-app', 'vic-views', 'vic-lib-js', 'vic-js', 'vic-server-js', 'vic-images']);
 
 gulp.task('watch', function() {
   // Main app file
-  gulp.watch('./app/app.js', ['globby-app']);
+  gulp.watch('./app/app.js', ['vic-app']);
 
   // EJS views
-  gulp.watch('./app/views/**/*.ejs', ['globby-views']);
+  gulp.watch('./app/views/**/*.ejs', ['vic-views']);
 
   //CSS and JS files
   // gulp.watch('./app/css/*', ['oneline-css', 'snake-css']);
-  gulp.watch('./app/js/globby-*.js', ['globby-js', 'globby-clean']); 
-  gulp.watch('./app/js/globby.js', ['browserify']);
+  gulp.watch('./app/js/vic.js', ['vic-js', 'vic-clean']); 
 });

@@ -1,6 +1,19 @@
+//Define our dependencies here
+// var $ = require('jquery');
+// var io = require('socket.io-client');
+
 //Creating animations from sprite sheets
 var sprite_sheet;
 var myAnimation;
+
+// var affectValue = "<%= affectValue %>"
+console.log(affectValue);
+
+var socket = io.connect('http://localhost:8081');
+socket.on('news', function (data) {
+  console.log(data);
+  socket.emit('my other event', { my: 'data' });
+});
 
 function preload() {
   // specify width and height of each frame and number of frames
@@ -22,6 +35,5 @@ function draw() {
     myAnimation.play();
   }
   animation(myAnimation, width/2, height/2);
-
 }
 
