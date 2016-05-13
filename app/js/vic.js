@@ -39,21 +39,13 @@ function preload() {
   happyBounceAnimation = loadAnimation(sprite_sheet);
   happyBlinkAnimation = loadAnimation("./images/Happy_Blink/Happy_Blink020001.png", "./images/Happy_Blink/Happy_Blink020029.png");
   happyBreatheAnimation = loadAnimation("./images/Happy_Breathe/Happy_Breathe0001.png", "./images/Happy_Breathe/Happy_Breathe0025.png");
-  
-  //Don't autoplay
-  happyBounceAnimation.playing = false;
-  happyBlinkAnimation.playing = false;
-  happyBreatheAnimation.playing = false;
-  
-  //Don't loop
-  happyBounceAnimation.looping = false;
-  happyBlinkAnimation.looping = false;
-  happyBreatheAnimation.looping = false;
-  
+    
   //Add them to our array
   // happyAnimationsList.push(happyBounceAnimation);
   happyAnimationsList.push(happyBlinkAnimation);
   happyAnimationsList.push(happyBreatheAnimation);
+  
+  initAnimations(happyAnimationsList);
 }
 
 function setup() {
@@ -74,6 +66,13 @@ function draw() {
   
   runAnimation();
 
+}
+
+function initAnimations (animationsArray) {
+  for (i = 0; i < animationsArray.length; i++) {
+    animationsArray[i].playing = false;
+    animationsArray[i].looping = false;
+  }
 }
 
 function chooseAnimationBasedOnAffect (affectVal) {
