@@ -7,9 +7,13 @@ var path = require('path');
 var server = require('http').Server(app);
 var io = require('socket.io')(server);
 
-// var server = require('http').createServer()
 var url = require('url');
 var WebSocketServer = require('ws').Server;
+
+//Remember that we have 3 ports in use
+// 8080 - WebSocket Port   - for kinect information
+// 8081 - Socket.io port   - for controlling vic and moving it other screens
+// 8082 - HTTP server port - the UI is served on this port
 var wss = new WebSocketServer({ server: server, port: 8080 });
 
 var app = express();
@@ -18,9 +22,9 @@ var app = express();
 var vicManager = require("./js/server/vicmanager.js");
 var characterManager = new vicManager();
 
-//Keep track of the 'server' - the socket controlling globby
-var serverSocket;
-var serverID = -1; //not really used now
+//Keep track of the 'server' - the socket controlling vic
+var characterSocket;
+var characterSocketID = -1; //not really used now
 
 app.set('view engine', 'ejs');
 
@@ -28,9 +32,10 @@ server.listen(8081);
 
 io.on('connection', function (socket) {
   socket.on('server', function() {
-    serverID = 1; //TODO? - manage clients?
-    serverSocket = socket.id;
+    characterSocketID = 1; //TODO? - manage clients?
+    characterSocket = socket.id;
     console.log("We have a server!");
+    //Tell the server the starting emotional state of the character
     socket.emit('update affect', characterManager.getAffectValue());
   });
 });
