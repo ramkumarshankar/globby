@@ -64,7 +64,7 @@ gulp.task('vic-lib-js', function() {
 });
 
 gulp.task('vic-images', function() {
-  return gulp.src('./app/images/*')
+  return gulp.src('./app/images/**/*')
     .pipe(gulp.dest('./build/images'));
 });
 
