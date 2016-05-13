@@ -56,7 +56,8 @@ color[]       userClr = new color[]{ color(255,0,0),
   PVector leftFootPos = new PVector();
   
   //history instance
-  float headPosHisX;
+  float headPosHisX, leftHandPosHisY, rightHandPosHisY;
+  boolean rightHandFlap, leftHandFlap;
   PVector headPosHis = new PVector();
   PVector neckPosHis = new PVector();
   PVector rightShoulderPosHis = new PVector();
@@ -107,6 +108,10 @@ void setup()
               float(width)/float(height),
               10,150000);            
   
+  // flap status
+  rightHandFlap = false;
+  leftHandFlap = false;
+  
  }
 
 void draw()
@@ -141,6 +146,7 @@ void draw()
       //if the status of split is true
       //if the status of bouncing is true
       //else send the mirroing data
+      validFlap();
       mirrorData();
 
     }
@@ -192,9 +198,11 @@ void getJointPosition(int userId){
    rightShoulderPosHis = rightShoulderPos;
    rightElbowPosHis = rightElbowPos;
    rightHandPosHis = rightHandPos;
+   rightHandPosHisY = rightHandPos.y;
    leftShoulderPosHis = leftShoulderPos;
    leftElbowPosHis = leftElbowPos;
    leftHandPosHis = leftHandPos;
+   leftHandPosHisY = leftHandPos.y;
    torsoPosHis = torsoPos;
    rightHipPosHis = rightHipPos;
    rightKneePosHis = rightKneePos;
@@ -207,19 +215,19 @@ void getJointPosition(int userId){
   //give position values to the instances
   context.getJointPositionSkeleton(userId,SimpleOpenNI.SKEL_HEAD,headPos);
   context.getJointPositionSkeleton(userId,SimpleOpenNI.SKEL_NECK,neckPos);
-  context.getJointPositionSkeleton(userId,SimpleOpenNI.SKEL_RIGHT_SHOULDER,rightShoulderPos);
-  context.getJointPositionSkeleton(userId,SimpleOpenNI.SKEL_RIGHT_ELBOW,rightElbowPos);
-  context.getJointPositionSkeleton(userId,SimpleOpenNI.SKEL_RIGHT_HAND,rightHandPos);
-  context.getJointPositionSkeleton(userId,SimpleOpenNI.SKEL_LEFT_SHOULDER,leftShoulderPos);
-  context.getJointPositionSkeleton(userId,SimpleOpenNI.SKEL_LEFT_ELBOW,leftElbowPos);
-  context.getJointPositionSkeleton(userId,SimpleOpenNI.SKEL_LEFT_HAND,leftHandPos);
+  context.getJointPositionSkeleton(userId,SimpleOpenNI.SKEL_RIGHT_SHOULDER,leftShoulderPos);
+  context.getJointPositionSkeleton(userId,SimpleOpenNI.SKEL_RIGHT_ELBOW,leftElbowPos);
+  context.getJointPositionSkeleton(userId,SimpleOpenNI.SKEL_RIGHT_HAND,leftHandPos);
+  context.getJointPositionSkeleton(userId,SimpleOpenNI.SKEL_LEFT_SHOULDER,rightShoulderPos);
+  context.getJointPositionSkeleton(userId,SimpleOpenNI.SKEL_LEFT_ELBOW,rightElbowPos);
+  context.getJointPositionSkeleton(userId,SimpleOpenNI.SKEL_LEFT_HAND,rightHandPos);
   context.getJointPositionSkeleton(userId,SimpleOpenNI.SKEL_TORSO,torsoPos);
-  context.getJointPositionSkeleton(userId,SimpleOpenNI.SKEL_RIGHT_HIP,rightHipPos);
-  context.getJointPositionSkeleton(userId,SimpleOpenNI.SKEL_RIGHT_KNEE,rightKneePos);
-  context.getJointPositionSkeleton(userId,SimpleOpenNI.SKEL_RIGHT_FOOT,rightFootPos);
-  context.getJointPositionSkeleton(userId,SimpleOpenNI.SKEL_LEFT_HIP,leftHipPos);
-  context.getJointPositionSkeleton(userId,SimpleOpenNI.SKEL_LEFT_KNEE,leftKneePos);
-  context.getJointPositionSkeleton(userId,SimpleOpenNI.SKEL_LEFT_FOOT,leftFootPos);
+  context.getJointPositionSkeleton(userId,SimpleOpenNI.SKEL_RIGHT_HIP,leftHipPos);
+  context.getJointPositionSkeleton(userId,SimpleOpenNI.SKEL_RIGHT_KNEE,leftKneePos);
+  context.getJointPositionSkeleton(userId,SimpleOpenNI.SKEL_RIGHT_FOOT,leftFootPos);
+  context.getJointPositionSkeleton(userId,SimpleOpenNI.SKEL_LEFT_HIP,rightHipPos);
+  context.getJointPositionSkeleton(userId,SimpleOpenNI.SKEL_LEFT_KNEE,rightKneePos);
+  context.getJointPositionSkeleton(userId,SimpleOpenNI.SKEL_LEFT_FOOT,rightFootPos);
   
   //detect the status of boucing and spliting
 }
@@ -234,8 +242,6 @@ void mirrorData(){
    int frames = 20;
    int headMoveFinalData = 0;
    
-//   println("headPos.x - torsoPos.x: " + (headPos.x - torsoPos.x));
-   
    if((headPos.x - torsoPos.x)<0){
     direction = "right"; 
    } else if((headPos.x - torsoPos.x)>0){
@@ -247,12 +253,51 @@ void mirrorData(){
     headMoveFinalData = (int)(frames*((headMovePortion-0.1)/0.9)); 
    } 
    
-   print("headMove: " + (int)headMove);
-   print("          ");
-   print("frame: " + headMoveFinalData);
-   print("          ");
-   println("direction: " + direction);
+//   wsData = "{/"event"/:" + 
+}
+
+void validFlap(){
+  
+  //LEFT HAND
+  
+  if(leftHandPos.y > torsoPos.y){
+    //if the handFlap boolean value is false
+    // start comparing the handPos.y and handPosHisY
+    // if the handPos.y < handPosHisY
+    // turn the value to true; 
+    if(!leftHandFlap){
+       if((leftHandPos.y - leftHandPosHisY)<-10){
+          leftHandFlap = true;
+       } 
+    }
+    
+    //if the handFlag boolean value is true
+    //detect whether there is a sudden up movement
+    //if so, send a data of flag
+     if(leftHandFlap){
+       if((leftHandPos.y - leftHandPosHisY)>30){
+          println("a left hand flap!");
+          leftHandFlap = false;
+       } 
+     }  
+  } 
+  
+  // RIGHT HAND 
+  if(rightHandPos.y > torsoPos.y){
+    if(!rightHandFlap){
+       if((rightHandPos.y - rightHandPosHisY)<-10){
+          rightHandFlap = true;
+       } 
+    }
    
+     if(rightHandFlap){
+       if((rightHandPos.y - rightHandPosHisY)>30){
+          println("a right hand flap!");
+          rightHandFlap = false;
+       } 
+     } 
+  }
+  
 }
 
 void mousePressed(){
@@ -369,7 +414,7 @@ void onNewUser(SimpleOpenNI curContext,int userId)
   println("onNewUser - userId: " + userId);
   println("\tstart tracking skeleton");
   
-//  client.send("new user from kinect");
+//  client.send("new user");
   
   context.startTrackingSkeleton(userId);
 }
@@ -377,6 +422,7 @@ void onNewUser(SimpleOpenNI curContext,int userId)
 void onLostUser(SimpleOpenNI curContext,int userId)
 {
   println("onLostUser - userId: " + userId);
+  //  client.send("lost user");
 }
 
 void onVisibleUser(SimpleOpenNI curContext,int userId)
