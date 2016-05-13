@@ -10,9 +10,12 @@
  */
  
 import SimpleOpenNI.*;
-//import websockets.*;
 import wsp5.*;
+
+//websocket sending data
 WsClient client;
+String wsData;
+
 
 //kinect
 SimpleOpenNI context;
@@ -34,6 +37,43 @@ color[]       userClr = new color[]{ color(255,0,0),
                                      color(0,255,255)
                                    };
 
+//joint position vectors
+//instance
+  PVector headPos = new PVector();
+  PVector neckPos = new PVector();
+  PVector rightShoulderPos = new PVector();
+  PVector rightElbowPos = new PVector();
+  PVector rightHandPos = new PVector();
+  PVector leftShoulderPos = new PVector();
+  PVector leftElbowPos = new PVector();
+  PVector leftHandPos = new PVector();
+  PVector torsoPos = new PVector();
+  PVector rightHipPos = new PVector();
+  PVector rightKneePos = new PVector();
+  PVector rightFootPos = new PVector();
+  PVector leftHipPos = new PVector();
+  PVector leftKneePos = new PVector();
+  PVector leftFootPos = new PVector();
+  
+  //history instance
+  float headPosHisX;
+  PVector headPosHis = new PVector();
+  PVector neckPosHis = new PVector();
+  PVector rightShoulderPosHis = new PVector();
+  PVector rightElbowPosHis = new PVector();
+  PVector rightHandPosHis = new PVector();
+  PVector leftShoulderPosHis = new PVector();
+  PVector leftElbowPosHis = new PVector();
+  PVector leftHandPosHis = new PVector();
+  PVector torsoPosHis = new PVector();
+  PVector rightHipPosHis = new PVector();
+  PVector rightKneePosHis = new PVector();
+  PVector rightFootPosHis = new PVector();
+  PVector leftHipPosHis = new PVector();
+  PVector leftKneePosHis = new PVector();
+  PVector leftFootPosHis = new PVector();
+
+
 void setup()
 {
   
@@ -42,8 +82,6 @@ void setup()
     client.connect();
   } catch ( Exception e ){
   }
-  
-  client.send("kinect");
   
   size(1024,768,P3D);  // strange, get drawing error in the cameraFrustum if i use P3D, in opengl there is no problem
   context = new SimpleOpenNI(this);
@@ -67,17 +105,7 @@ void setup()
   smooth();  
   perspective(radians(45),
               float(width)/float(height),
-              10,150000);
-              
-   JSONObject json;
-  json = new JSONObject();
-  json.setInt("test",1);
-  saveJSONObject(json, "data/new.json");
-//  println(json);   
-//  print("HEAD.z: " + (int)torsoPos.z + "    ");
-           
-  //websocket
-//  wsc= new WebsocketClient(this, "ws://10.19.244.53:8080/");
+              10,150000);            
   
  }
 
@@ -101,28 +129,6 @@ void draw()
   PVector realWorldPoint;
  
   translate(0,0,-1000);  // set the rotation center of the scene 1000 infront of the camera
-
-  // draw the pointcloud
-//  beginShape(POINTS);
-//  for(int y=0;y < context.depthHeight();y+=steps)
-//  {
-//    for(int x=0;x < context.depthWidth();x+=steps)
-//    {
-//      index = x + y * context.depthWidth();
-//      if(depthMap[index] > 0)
-//      { 
-//        // draw the projected point
-//        realWorldPoint = context.depthMapRealWorld()[index];
-//        if(userMap[index] == 0)
-//          stroke(100); 
-//        else
-//          stroke(userClr[ (userMap[index] - 1) % userClr.length ]);        
-//        
-//        point(realWorldPoint.x,realWorldPoint.y,realWorldPoint.z);
-//      }
-//    } 
-//  } 
-//  endShape();
   
   // draw the skeleton if it's available
   int[] userList = context.getUsers();
@@ -130,8 +136,14 @@ void draw()
   {
     if(context.isTrackingSkeleton(userList[i])){
       drawSkeleton(userList[i]);
-      printJointPosition(userList[i]);
-      println("User available!: " + userList[i]);
+      getJointPosition(userList[i]);
+      
+      //if the status of split is true
+      //if the status of bouncing is true
+      //else send the mirroing data
+      mirrorData();
+      
+
     }
     
     // draw the center of mass
@@ -159,6 +171,7 @@ void draw()
   context.drawCamFrustum();
 }
 
+
 //====================================================================================
 //====================================================================================
 //====================================================================================
@@ -171,24 +184,26 @@ void draw()
 //=====================START OF MY CODE===============================================
 
 
-void printJointPosition(int userId){
+void getJointPosition(int userId){
   
-  //instance
-  PVector headPos = new PVector();
-  PVector neckPos = new PVector();
-  PVector rightShoulderPos = new PVector();
-  PVector rightElbowPos = new PVector();
-  PVector rightHandPos = new PVector();
-  PVector leftShoulderPos = new PVector();
-  PVector leftElbowPos = new PVector();
-  PVector leftHandPos = new PVector();
-  PVector torsoPos = new PVector();
-  PVector rightHipPos = new PVector();
-  PVector rightKneePos = new PVector();
-  PVector rightFootPos = new PVector();
-  PVector leftHipPos = new PVector();
-  PVector leftKneePos = new PVector();
-  PVector leftFootPos = new PVector();
+  //get history data
+  if(headPos != null){
+   headPosHisX = headPos.x;
+   neckPosHis = neckPos;
+   rightShoulderPosHis = rightShoulderPos;
+   rightElbowPosHis = rightElbowPos;
+   rightHandPosHis = rightHandPos;
+   leftShoulderPosHis = leftShoulderPos;
+   leftElbowPosHis = leftElbowPos;
+   leftHandPosHis = leftHandPos;
+   torsoPosHis = torsoPos;
+   rightHipPosHis = rightHipPos;
+   rightKneePosHis = rightKneePos;
+   rightFootPosHis = rightFootPos;
+   leftHipPosHis = leftHipPos;
+   leftKneePosHis = leftKneePos;
+   leftFootPosHis = leftFootPos;
+  } 
   
   //give position values to the instances
   context.getJointPositionSkeleton(userId,SimpleOpenNI.SKEL_HEAD,headPos);
@@ -207,9 +222,32 @@ void printJointPosition(int userId){
   context.getJointPositionSkeleton(userId,SimpleOpenNI.SKEL_LEFT_KNEE,leftKneePos);
   context.getJointPositionSkeleton(userId,SimpleOpenNI.SKEL_LEFT_FOOT,leftFootPos);
   
+  //detect the status of boucing and spliting
 }
 
-void mousePressed
+void mirrorData(){
+   float baseDis = dist(rightShoulderPos.x,rightShoulderPos.y, leftShoulderPos.x, leftShoulderPos.y);
+   float headMove = abs(headPos.x - torsoPos.x);
+   
+   float headMovePortion = headMove/baseDis;
+   int frames = 20;
+   int headMoveFinalData = 0;
+   
+   if(headMovePortion > 0.1){
+    headMoveFinalData = (int)(frames*((headMovePortion-0.1)/0.9)); 
+   } 
+   
+   print("headMove: " + (int)headMove);
+   print("          ");
+   print("persentage: " + (int)(headMovePortion*100));
+   print("          ");
+   println("frame: " + headMoveFinalData);
+   
+}
+
+void mousePressed(){
+ client.send("new user"); 
+}
 
 
 //====================================================================================
@@ -230,7 +268,7 @@ void drawSkeleton(int userId)
   strokeWeight(3);
 
   // to get the 3d joint data
-//  drawLimb(userId, SimpleOpenNI.SKEL_HEAD, SimpleOpenNI.SKEL_NECK);
+  drawLimb(userId, SimpleOpenNI.SKEL_HEAD, SimpleOpenNI.SKEL_NECK);
 
   drawLimb(userId, SimpleOpenNI.SKEL_NECK, SimpleOpenNI.SKEL_LEFT_SHOULDER);
   drawLimb(userId, SimpleOpenNI.SKEL_LEFT_SHOULDER, SimpleOpenNI.SKEL_LEFT_ELBOW);
@@ -320,6 +358,8 @@ void onNewUser(SimpleOpenNI curContext,int userId)
 {
   println("onNewUser - userId: " + userId);
   println("\tstart tracking skeleton");
+  
+//  client.send("new user from kinect");
   
   context.startTrackingSkeleton(userId);
 }
