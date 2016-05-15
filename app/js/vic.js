@@ -3,6 +3,9 @@
 // var $ = require('jquery');
 // var io = require('socket.io-client');
 
+//Create a vic sprite
+var vic;
+
 //Creating animations from sprite sheets
 var sprite_sheet;
 
@@ -18,20 +21,21 @@ var happyBreatheAnimation;
 var happyBounceAnimation;
 var happyAnimationsList = [];
 
-//Current animation
-var currentAnimation;
-//Index of next animation
-var nextAnimation = -1;
+var happyAnimationsKey = {
+  0: 'happyblink',
+  1: 'happybreathe'
+  //Add more animations here
+};
+
+//Label of next animation
+var nextAnimationLabel;
 
 var socket = io.connect('http://localhost:8081');
 socket.on('update affect', function(value) {
   affectValue = value;
   console.log(affectValue);
+  //Now that we have a starting state, start the draw loop
   loop();
-});
-socket.on('start', function (data) {
-  startBreathe = data;
-  console.log(startBreathe);
 });
 
 function preload() {
@@ -46,15 +50,26 @@ function preload() {
   happyAnimationsList.push(happyBlinkAnimation);
   happyAnimationsList.push(happyBreatheAnimation);
   
+  //Some housekeeping - don't autoplay and loop
   initAnimations(happyAnimationsList);
 }
 
 function setup() {
   // frameRate(24);
+  //Create the sprite
+  vic = createSprite(windowWidth/2, windowHeight/2, 600, 500);
+  
+  //Add our animations to the sprite
+  vic.addAnimation("happyblink", happyBlinkAnimation);
+  vic.addAnimation("happybreathe", happyBreatheAnimation);
+
+  //Create our canvas
   createCanvas(windowWidth, windowHeight);
-  background(51);
+  
+  //Tell the server that we're ready
   console.log("I'm the server");
   socket.emit('server', 'connected');
+  
   noLoop();
 }
 
@@ -63,12 +78,14 @@ function draw() {
   
   if (!bAnimProgress) {
     chooseAnimationBasedOnAffect(affectValue);
-    console.log(nextAnimation);
   }
   
-  if (nextAnimation >= 0) {
+  if (nextAnimationLabel) {
+    //Check if we have completed the animation
     runAnimation(); 
   }
+  
+  drawSprites();
 
 }
 
@@ -80,6 +97,7 @@ function initAnimations (animationsArray) {
 }
 
 function chooseAnimationBasedOnAffect (affectVal) {
+  var selectedAnimationIndex = -1;
   //Near death state
   if (affectVal <= 0.2) {
     
@@ -95,16 +113,16 @@ function chooseAnimationBasedOnAffect (affectVal) {
   //Happy state
   else if (affectVal <= 0.8) {
     var numPossibleAnimations = happyAnimationsList.length;
-    nextAnimation = Math.floor(Math.random() * (numPossibleAnimations));
-    currentAnimation  = happyAnimationsList[nextAnimation];
-    
+    selectedAnimationIndex = Math.floor(Math.random() * (numPossibleAnimations));
+    nextAnimationLabel = happyAnimationsKey[selectedAnimationIndex];
+    vic.changeAnimation(nextAnimationLabel);
   }
   //Excited state
   else if (affectVal <= 1.0) {
     
   }
   
-  if (nextAnimation >= 0) {
+  if (selectedAnimationIndex >= 0) {
     bAnimProgress = true; 
   }
 }
@@ -112,13 +130,12 @@ function chooseAnimationBasedOnAffect (affectVal) {
 function runAnimation () {
   //If there is no current animation, start the next one
   if (bAnimProgress) {
-    animation(currentAnimation, width/2, height/2);
-    currentAnimation.play();
+    vic.animation.play();
   }
   //If we're at the last frame, set flag and go to first frame
-  if (currentAnimation.getFrame() == currentAnimation.getLastFrame()) {
+  if (vic.animation.getFrame() == vic.animation.getLastFrame()) {
     bAnimProgress = false;
-    currentAnimation.changeFrame(0);
+    vic.animation.changeFrame(0);
   } 
 }
 
