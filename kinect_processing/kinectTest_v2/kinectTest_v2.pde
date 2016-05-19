@@ -74,6 +74,9 @@ color[]       userClr = new color[]{ color(255,0,0),
   PVector leftKneePosHis = new PVector();
   PVector leftFootPosHis = new PVector();
 
+  //TIMER FOR DIFFERENT INTERACTIONS
+  int flapTimerHistory = 0;
+  
 
 void setup()
 {
@@ -145,10 +148,14 @@ void draw()
       
       //if the status of split is true
       //if the status of bouncing is true
+      
       //else send the mirroing data
       validFlap();
-      mirrorData();
-
+      
+      if((millis()-flapTimerHistory)>5000){
+        mirrorData();  
+      }
+      
     }
     
     // draw the center of mass
@@ -253,7 +260,8 @@ void mirrorData(){
     headMoveFinalData = (int)(frames*((headMovePortion-0.1)/0.9)); 
    } 
    
-//   wsData = "{/"event"/:" + 
+   String mirrorDataWS = "{\"event\":\"" + "mirror" + "\",\"frame\":\"" + headMoveFinalData + "\",\"direction\":\"" + direction + "\"}";
+   client.send(mirrorDataWS);
 }
 
 void validFlap(){
@@ -276,7 +284,10 @@ void validFlap(){
     //if so, send a data of flag
      if(leftHandFlap){
        if((leftHandPos.y - leftHandPosHisY)>30){
-          println("a left hand flap!");
+//        println("a left hand flap!");
+          String flapDataWS = "{\"event\":\"" + "flap" + "\",\"status\":" + true + "}";
+          client.send(flapDataWS);
+          flapTimerHistory = millis();
           leftHandFlap = false;
        } 
      }  
@@ -292,7 +303,11 @@ void validFlap(){
    
      if(rightHandFlap){
        if((rightHandPos.y - rightHandPosHisY)>30){
-          println("a right hand flap!");
+//          println("a right hand flap!");
+//          println("{\"event\":\"" + "flap" + "\",\"status\":" + true + "}");
+          String flapDataWS = "{\"event\":\"" + "flap" + "\",\"status\":" + true + "}";
+          client.send(flapDataWS);
+          flapTimerHistory = millis();
           rightHandFlap = false;
        } 
      } 
@@ -414,7 +429,15 @@ void onNewUser(SimpleOpenNI curContext,int userId)
   println("onNewUser - userId: " + userId);
   println("\tstart tracking skeleton");
   
-//  client.send("new user");
+  if(userId > 1){
+      
+  }
+  
+  client.send("new user");
+
+  if(userId == 2){
+    
+  }
   
   context.startTrackingSkeleton(userId);
 }
