@@ -19,8 +19,15 @@ var bIdle = true;
 //Kinect related variables
 var bKinect = false;
 var bSurprise = false;
+var bMirror = false;
+var bMirrorEnd;
+var bFlap = false;
+
 
 //Our list of animations
+
+//Active
+var mirrorAnimation;
 
 //Sad
 var sadBreatheAnimation;
@@ -167,7 +174,15 @@ function draw() {
       nextAnimationLabel = 'surprise'; 
     }
     else {
-      nextAnimationLabel = 'happybreathe';
+      if (bMirror) {
+        // console.log(nextAnimationLabel);
+        mirrorUser('right', 1); 
+      }
+      else {
+        if (!nextAnimationLabel) {
+          nextAnimationLabel = 'happybreathe';
+        }
+      }
     }
     vic.changeAnimation(nextAnimationLabel);
   }
@@ -282,12 +297,23 @@ function keyPressed() {
     socket.emit('down');
   } else if ((key == 'k') || (key == 'K')) {
     initKinect();
+  } else if ((key == 'o') || (key == 'O')) {
+    endKinect();
   } else if ((key == 'r') || (key == 'R')) {
+    if (bKinect) {
+      if (!bMirror) {
+        vic.mirrorX(-1);
+        bMirror = true;
+        nextAnimationLabel = 'mirror';
+        vic.changeAnimation(nextAnimationLabel); 
+      } else {
+        bMirrorEnd = true;
+      }
+    }
     
-    bKinect = true;
   } else if ((key == 'l') || (key == 'L')) {
     
-    bKinect = true;
+    
   }
   return false;
 }
@@ -305,11 +331,7 @@ function resetAnimation() {
     vic.animation.changeFrame(0);
     nextAnimationLabel = '';
   }
-  
-  if (bKinect) {
-    bKinect = false;
-    bIdle = true;
-  }
+
 }
 
 function initKinect () {
@@ -320,5 +342,20 @@ function initKinect () {
 
 function endKinect () {
   bKinect = false;
+  bIdle = true;
   bSurprise = false;
+}
+
+function mirrorUser(direction, state) {
+  if (!bMirrorEnd) {
+    if (vic.animation.getFrame() == 11) {
+      vic.animation.changeFrame(7);
+    }
+    return; 
+  }
+  if (vic.animation.getFrame() == vic.animation.getLastFrame()) {
+    nextAnimationLabel = 'excitedbreathe';
+    bMirror = false;
+    bMirrorEnd = false;
+  }
 }
