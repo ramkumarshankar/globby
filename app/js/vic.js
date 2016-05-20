@@ -15,7 +15,10 @@ var affectValue = 0;
 //Flags to track if an animation is in progress
 var bAnimProgress = false;
 var bIdle = true;
+
+//Kinect related variables
 var bKinect = false;
+var bSurprise = false;
 
 //Our list of animations
 
@@ -73,12 +76,20 @@ socket.on('update affect', function (value) {
   affectValue = value;
   console.log(affectValue);
 });
+socket.on('interaction', function (message) {
+  // console.log(message.event);
+  // console.log(message.direction);
+  console.log(message);
+});
 
 function preload() {
   
   //Surprise Animation
   surpriseAnimation = loadAnimation("./images/Surprise/Dying_to_Surprised0001.png", "./images/Surprise/Dying_to_Surprised0013.png");
-  // surpriseAnimation.looping = false;
+  
+  //Active interactions
+  mirrorAnimation = loadAnimation("./images/Interaction_Mirror/Interaction_MirrorRight0001.png", "./images/Interaction_Mirror/Interaction_MirrorRight0017.png");
+  
   
   //Sad Animations
   sadBreatheAnimation = loadAnimation("./images/Sad_Breathe/Sad_Breathe0001.png", "./images/Sad_Breathe/Sad_Breathe0035.png");
@@ -119,6 +130,11 @@ function setup() {
   
   //Add our animations to the sprite
   vic.addAnimation("surprise", surpriseAnimation);
+  
+  //Active states
+  vic.addAnimation("mirror", mirrorAnimation);
+  
+  //Passive states
   vic.addAnimation("sadbreathe", sadBreatheAnimation);
   
   vic.addAnimation("neutralwalk", neutralWalkAnimation);
@@ -147,7 +163,12 @@ function draw() {
   if (bKinect) {
     bIdle = false;
     bAnimProgress = true;
-    nextAnimationLabel = 'surprise';
+    if (!bSurprise) {
+      nextAnimationLabel = 'surprise'; 
+    }
+    else {
+      nextAnimationLabel = 'happybreathe';
+    }
     vic.changeAnimation(nextAnimationLabel);
   }
   
@@ -178,7 +199,6 @@ function draw() {
   // }
   
   if (nextAnimationLabel) {
-    console.log(nextAnimationLabel);
     //Check if we have completed the animation
     runAnimation(); 
   }
@@ -261,7 +281,12 @@ function keyPressed() {
   } else if (keyCode == DOWN_ARROW) {
     socket.emit('down');
   } else if ((key == 'k') || (key == 'K')) {
-    affectValue = 0.7;
+    initKinect();
+  } else if ((key == 'r') || (key == 'R')) {
+    
+    bKinect = true;
+  } else if ((key == 'l') || (key == 'L')) {
+    
     bKinect = true;
   }
   return false;
@@ -269,19 +294,31 @@ function keyPressed() {
 
 function resetAnimation() {
   var currentAnimationLabel = vic.getAnimationLabel();
-  if (currentAnimationLabel !== 'surprise') {
-    bAnimProgress = false;
-    vic.animation.changeFrame(0);
-    nextAnimationLabel = '';
-  }
-  else {
+  if (currentAnimationLabel == 'surprise') {
     nextAnimationLabel = 'happybreathe';
     vic.animation.changeFrame(0);
     vic.changeAnimation('happybreathe');
+    bSurprise = true;
+  }
+  else {
+    bAnimProgress = false;
+    vic.animation.changeFrame(0);
+    nextAnimationLabel = '';
   }
   
   if (bKinect) {
     bKinect = false;
     bIdle = true;
   }
+}
+
+function initKinect () {
+  bKinect = true;
+  bSurprise = false;
+  affectValue = 0.7;
+}
+
+function endKinect () {
+  bKinect = false;
+  bSurprise = false;
 }

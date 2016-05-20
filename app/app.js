@@ -60,10 +60,17 @@ wss.on('connection', function connection(ws) {
   // console.log('received: %s', message);
 
   ws.on('message', function incoming(message) {
-    console.log(message);
     var msgFromProcessing = JSON.parse(message);
-    console.log("event: " + msgFromProcessing.event);
-    console.log("value " + msgFromProcessing.value);
+    console.log(msgFromProcessing);
+    //Look for the type of event
+    if (msgFromProcessing.event=="mirror") {
+      console.log(msgFromProcessing.event);
+      var wsMsg = {
+        event: msgFromProcessing.event,
+        direction: msgFromProcessing.direction
+      };
+      io.to(characterSocket).emit('interaction', wsMsg);
+    }
   });
 });
 
