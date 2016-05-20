@@ -23,6 +23,7 @@ var sadAnimationsList = [];
 
 //Neutral
 var neutralBreatheAnimation;
+var neutralWalkAnimation;
 var neutralAnimationsList = [];
 
 //Happy
@@ -41,7 +42,8 @@ var sadAnimationsKey = {
 };
 
 var neutralAnimationsKey = {
-  0: 'neutralbreathe'
+  0: 'neutralbreathe',
+  1: 'neutralwalk'
 };
 
 var happyAnimationsKey = {
@@ -76,6 +78,7 @@ function preload() {
   
   //Neutral Animations
   neutralBreatheAnimation = loadAnimation("./images/Neutral_Breathe/Neutral_Breathe0001.png", "./images/Neutral_Breathe/Neutral_Breathe0025.png");
+  neutralWalkAnimation = loadAnimation("./images/Neutral_Walk_InPlace/Neutral_Walk_InPlace0001.png", "./images/Neutral_Walk_InPlace/Neutral_Walk_InPlace0012.png");
   
   //Happy Animations
   happyBounceAnimation = loadAnimation(sprite_sheet);
@@ -89,6 +92,7 @@ function preload() {
   //Add them to our arrays
   sadAnimationsList.push(sadBreatheAnimation);
   
+  neutralAnimationsList.push(neutralWalkAnimation);
   neutralAnimationsList.push(neutralBreatheAnimation);
   
   // happyAnimationsList.push(happyBounceAnimation);
@@ -110,6 +114,7 @@ function setup() {
   //Add our animations to the sprite
   vic.addAnimation("sadbreathe", sadBreatheAnimation);
   
+  vic.addAnimation("neutralwalk", neutralWalkAnimation);
   vic.addAnimation("neutralbreathe", neutralBreatheAnimation);
   
   vic.addAnimation("happyblink", happyBlinkAnimation);
