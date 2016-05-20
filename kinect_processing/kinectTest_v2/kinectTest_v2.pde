@@ -261,6 +261,7 @@ void mirrorData(){
    } 
    
    String mirrorDataWS = "{\"event\":\"" + "mirror" + "\",\"frame\":\"" + headMoveFinalData + "\",\"direction\":\"" + direction + "\"}";
+   println(mirrorDataWS);
    client.send(mirrorDataWS);
 }
 
@@ -316,7 +317,7 @@ void validFlap(){
 }
 
 void mousePressed(){
- client.send("new user"); 
+ client.send("{\"event\":" + "\"new user\"" + "}"); 
 }
 
 
@@ -433,7 +434,7 @@ void onNewUser(SimpleOpenNI curContext,int userId)
       
   }
   
-  client.send("new user");
+  client.send("{\"event\":" + "\"new user\"" + "}");
 
   if(userId == 2){
     
