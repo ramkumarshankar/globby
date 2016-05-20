@@ -38,6 +38,10 @@ io.on('connection', function (socket) {
     //Tell the server the starting emotional state of the character
     socket.emit('update affect', characterManager.getAffectValue());
   });
+  socket.on('client', function() {
+    console.log("we have a client");
+    socket.emit('update client', characterManager.getAffectValue());
+  });
 });
 
 wss.on('connection', function connection(ws) {
@@ -57,6 +61,10 @@ wss.on('connection', function connection(ws) {
 
 app.get('/', function(req, res) {
   res.render('pages/index', {'affectValue': characterManager.getAffectValue()});
+});
+
+app.get('/client', function(req, res) {
+  res.render('pages/client', {'affectValue': characterManager.getAffectValue()});
 });
 
 app.use(serveStatic(__dirname)).listen(8082, function() {
