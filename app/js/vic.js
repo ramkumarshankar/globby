@@ -3,24 +3,23 @@
 // var $ = require('jquery');
 // var io = require('socket.io-client');
 
-//Create a vic sprite
+//Create our character sprite
 var vic;
-
-//Creating animations from sprite sheets
-var sprite_sheet;
 
 //Our character's emotional state
 var affectValue = 0;
 
+//Idle state
 //Flags to track if an animation is in progress
+var bIdle = false;
 var bAnimProgress = false;
-var bIdle = true;
 
 //Kinect related variables
-var bKinect = false;
+var bKinect = true;
 var bSurprise = false;
 var bMirror = false;
 var bMirrorEnd;
+var mirrorDirection;
 var bFlap = false;
 
 
@@ -176,7 +175,11 @@ function draw() {
     else {
       if (bMirror) {
         // console.log(nextAnimationLabel);
+        nextAnimationLabel = 'mirror';
         mirrorUser('right', 1); 
+      }
+      else if (bFlap) {
+        
       }
       else {
         if (!nextAnimationLabel) {
@@ -189,6 +192,7 @@ function draw() {
   
   //Idle states
   if (bIdle) {
+    bKinect = false;
     if (!bAnimProgress) {
       chooseAnimationBasedOnAffect(affectValue); 
     }
@@ -197,13 +201,13 @@ function draw() {
   
   
   // else {
-  //   vic.changeAnimation('neutralwalk');
-  //   vic.animation.play();
-  //   playWalk();
-  //   if (vic.position.x < -500)
-  //   {
-  //     vic.position.x = windowWidth+500;
-  //   }
+    // vic.changeAnimation('neutralwalk');
+    // vic.animation.play();
+    // playWalk();
+    // if (vic.position.x < -500)
+    // {
+    //   vic.position.x = windowWidth+500;
+    // }
   // }
   
   // if (mouseX > vic.position.x) {
@@ -214,7 +218,7 @@ function draw() {
   // }
   
   if (nextAnimationLabel) {
-    //Check if we have completed the animation
+    // Check if we have completed the animation
     runAnimation(); 
   }
   
@@ -274,6 +278,11 @@ function runAnimation () {
   if (bAnimProgress) {
     vic.animation.play();
   }
+  
+  if (bMirror) {
+    mirrorUser('right', 1);
+    return;
+  }
   //If we're at the last frame, set flag and go to first frame
   if (vic.animation.getFrame() == vic.animation.getLastFrame()) {
     resetAnimation();
@@ -302,10 +311,10 @@ function keyPressed() {
   } else if ((key == 'r') || (key == 'R')) {
     if (bKinect) {
       if (!bMirror) {
-        vic.mirrorX(-1);
+        // vic.mirrorX(-1);
         bMirror = true;
-        nextAnimationLabel = 'mirror';
-        vic.changeAnimation(nextAnimationLabel); 
+        // nextAnimationLabel = 'mirror';
+        // vic.changeAnimation(nextAnimationLabel); 
       } else {
         bMirrorEnd = true;
       }
