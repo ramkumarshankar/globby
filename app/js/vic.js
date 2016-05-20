@@ -14,6 +14,8 @@ var affectValue = 0;
 
 //Flags to track if an animation is in progress
 var bAnimProgress = false;
+var bIdle = true;
+var bKinect = false;
 
 //Our list of animations
 
@@ -29,7 +31,6 @@ var neutralAnimationsList = [];
 //Happy
 var happyBlinkAnimation;
 var happyBreatheAnimation;
-var happyBounceAnimation;
 var happyDanceAnimation;
 var happyAnimationsList = [];
 
@@ -62,26 +63,32 @@ var excitedAnimationsKey = {
 var nextAnimationLabel;
 
 var socket = io.connect('http://localhost:8081');
-socket.on('update affect', function(value) {
+socket.on('init server', function(value) {
   affectValue = value;
   console.log(affectValue);
   //Now that we have a starting state, start the draw loop
   loop();
 });
+socket.on('update affect', function (value) {
+  affectValue = value;
+  console.log(affectValue);
+});
 
 function preload() {
-  // specify width and height of each frame and number of frames
-  sprite_sheet = loadSpriteSheet('./images/sprite_sheet.png', 426, 433, 8);
+  
+  //Surprise Animation
+  surpriseAnimation = loadAnimation("./images/Surprise/Dying_to_Surprised0001.png", "./images/Surprise/Dying_to_Surprised0013.png");
+  // surpriseAnimation.looping = false;
   
   //Sad Animations
-  sadBreatheAnimation = loadAnimation("./images/Sad_Breathe/Sad_Breathe0001.png", "./images/Sad_Breathe/Sad_Breathe0035.png")
+  sadBreatheAnimation = loadAnimation("./images/Sad_Breathe/Sad_Breathe0001.png", "./images/Sad_Breathe/Sad_Breathe0035.png");
   
   //Neutral Animations
   neutralBreatheAnimation = loadAnimation("./images/Neutral_Breathe/Neutral_Breathe0001.png", "./images/Neutral_Breathe/Neutral_Breathe0025.png");
   neutralWalkAnimation = loadAnimation("./images/Neutral_Walk_InPlace/Neutral_Walk_InPlace0001.png", "./images/Neutral_Walk_InPlace/Neutral_Walk_InPlace0012.png");
+  // neutralWalkAnimation = loadAnimation("./images/Neutral_Walk/Neutral_Walk0001.png", "./images/Neutral_Walk/Neutral_Walk0012.png");
   
   //Happy Animations
-  happyBounceAnimation = loadAnimation(sprite_sheet);
   happyBlinkAnimation = loadAnimation("./images/Happy_Blink/Happy_Blink010001.png", "./images/Happy_Blink/Happy_Blink010029.png");
   happyBreatheAnimation = loadAnimation("./images/Happy_Breathe/Happy_Breathe0001.png", "./images/Happy_Breathe/Happy_Breathe0025.png");
   happyDanceAnimation = loadAnimation("./images/Happy_Dance/Happy_Dance0001.png", "./images/Happy_Dance/Happy_Dance0033.png");
@@ -95,7 +102,6 @@ function preload() {
   neutralAnimationsList.push(neutralWalkAnimation);
   neutralAnimationsList.push(neutralBreatheAnimation);
   
-  // happyAnimationsList.push(happyBounceAnimation);
   happyAnimationsList.push(happyBlinkAnimation);
   happyAnimationsList.push(happyBreatheAnimation);
   happyAnimationsList.push(happyDanceAnimation);
@@ -112,6 +118,7 @@ function setup() {
   vic = createSprite(windowWidth/2, windowHeight/2, 600, 500);
   
   //Add our animations to the sprite
+  vic.addAnimation("surprise", surpriseAnimation);
   vic.addAnimation("sadbreathe", sadBreatheAnimation);
   
   vic.addAnimation("neutralwalk", neutralWalkAnimation);
@@ -136,11 +143,42 @@ function setup() {
 function draw() {
   background(51);
   
-  if (!bAnimProgress) {
-    chooseAnimationBasedOnAffect(affectValue);
+  //Kinect available
+  if (bKinect) {
+    bIdle = false;
+    bAnimProgress = true;
+    nextAnimationLabel = 'surprise';
+    vic.changeAnimation(nextAnimationLabel);
   }
   
+  //Idle states
+  if (bIdle) {
+    if (!bAnimProgress) {
+      chooseAnimationBasedOnAffect(affectValue); 
+    }
+  }
+  
+  
+  
+  // else {
+  //   vic.changeAnimation('neutralwalk');
+  //   vic.animation.play();
+  //   playWalk();
+  //   if (vic.position.x < -500)
+  //   {
+  //     vic.position.x = windowWidth+500;
+  //   }
+  // }
+  
+  // if (mouseX > vic.position.x) {
+    // vic.velocity.x = 4;
+  // }
+  // else if (mouseX < vic.position.x) {
+    // vic.velocity.x = -4;
+  // }
+  
   if (nextAnimationLabel) {
+    console.log(nextAnimationLabel);
     //Check if we have completed the animation
     runAnimation(); 
   }
@@ -203,8 +241,47 @@ function runAnimation () {
   }
   //If we're at the last frame, set flag and go to first frame
   if (vic.animation.getFrame() == vic.animation.getLastFrame()) {
-    bAnimProgress = false;
-    vic.animation.changeFrame(0);
+    resetAnimation();
   } 
 }
 
+function playWalk () {
+  if ((vic.animation.getFrame() >= 4) && (vic.animation.getFrame() <= 8)) {
+    vic.velocity.x = -6;
+  }
+  else {
+    vic.velocity.x = 0;
+  }
+}
+
+//Using this for development and testing
+function keyPressed() {
+  if (keyCode == UP_ARROW) {
+    socket.emit('up');
+  } else if (keyCode == DOWN_ARROW) {
+    socket.emit('down');
+  } else if ((key == 'k') || (key == 'K')) {
+    affectValue = 0.7;
+    bKinect = true;
+  }
+  return false;
+}
+
+function resetAnimation() {
+  var currentAnimationLabel = vic.getAnimationLabel();
+  if (currentAnimationLabel !== 'surprise') {
+    bAnimProgress = false;
+    vic.animation.changeFrame(0);
+    nextAnimationLabel = '';
+  }
+  else {
+    nextAnimationLabel = 'happybreathe';
+    vic.animation.changeFrame(0);
+    vic.changeAnimation('happybreathe');
+  }
+  
+  if (bKinect) {
+    bKinect = false;
+    bIdle = true;
+  }
+}

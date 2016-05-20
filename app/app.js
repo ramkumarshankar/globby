@@ -36,11 +36,19 @@ io.on('connection', function (socket) {
     characterSocket = socket.id;
     console.log("We have a server!");
     //Tell the server the starting emotional state of the character
-    socket.emit('update affect', characterManager.getAffectValue());
+    socket.emit('init server', characterManager.getAffectValue());
   });
   socket.on('client', function() {
     console.log("we have a client");
     socket.emit('update client', characterManager.getAffectValue());
+  });
+  socket.on('up', function() {
+    characterManager.increaseAffectValue();
+    socket.emit('update affect', characterManager.getAffectValue());
+  });
+  socket.on('down', function() {
+    characterManager.decreaseAffectValue();
+    socket.emit('update affect', characterManager.getAffectValue());
   });
 });
 
