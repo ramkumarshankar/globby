@@ -79,7 +79,7 @@ var excitedAnimationsKey = {
 //Label of next animation
 var nextAnimationLabel;
 
-var socket = io.connect('http://localhost:8081');
+var socket = io.connect('http://' + ipAddress + ':8081');
 socket.on('init server', function(value) {
   affectValue = value;
   console.log(affectValue);
