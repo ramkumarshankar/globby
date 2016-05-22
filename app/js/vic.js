@@ -28,6 +28,10 @@ var bFlap = false;
 //Active
 var mirrorAnimation;
 
+//Near-death
+var dyingBreatheAnimation;
+var dyingAnimationsList = [];
+
 //Sad
 var sadBreatheAnimation;
 var sadAnimationsList = [];
@@ -46,6 +50,10 @@ var happyAnimationsList = [];
 //Excited
 var excitedBreatheAnimation;
 var excitedAnimationsList = [];
+
+var dyingAnimationsKey = {
+  0: 'dyingbreathe'
+};
 
 var sadAnimationsKey = {
   0: 'sadbreathe'
@@ -96,6 +104,8 @@ function preload() {
   //Active interactions
   mirrorAnimation = loadAnimation("./images/Interaction_Mirror/Interaction_MirrorRight0001.png", "./images/Interaction_Mirror/Interaction_MirrorRight0017.png");
   
+  //Dying Animations
+  dyingBreatheAnimation = loadAnimation("./images/Dying_Breathe//Dying_Breathe0001.png", "./images/Dying_Breathe//Dying_Breathe0035.png")
   
   //Sad Animations
   sadBreatheAnimation = loadAnimation("./images/Sad_Breathe/Sad_Breathe0001.png", "./images/Sad_Breathe/Sad_Breathe0035.png");
@@ -114,6 +124,8 @@ function preload() {
   excitedBreatheAnimation = loadAnimation("./images/Excited_Breathe/Excited_Breathe0001.png", "./images/Excited_Breathe/Excited_Breathe0025.png");
     
   //Add them to our arrays
+  dyingAnimationsList.push(dyingBreatheAnimation);
+  
   sadAnimationsList.push(sadBreatheAnimation);
   
   neutralAnimationsList.push(neutralWalkAnimation);
@@ -141,6 +153,7 @@ function setup() {
   vic.addAnimation("mirror", mirrorAnimation);
   
   //Passive states
+  vic.addAnimation("dyingbreathe", dyingBreatheAnimation);
   vic.addAnimation("sadbreathe", sadBreatheAnimation);
   
   vic.addAnimation("neutralwalk", neutralWalkAnimation);
@@ -237,7 +250,10 @@ function chooseAnimationBasedOnAffect (affectVal) {
   var selectedAnimationIndex = -1;
   //Near death state
   if (affectVal <= 0.2) {
-    
+    var numPossibleAnimations = dyingAnimationsList.length;
+    selectedAnimationIndex = Math.floor(Math.random() * (numPossibleAnimations));
+    nextAnimationLabel = dyingAnimationsKey[selectedAnimationIndex];
+    vic.changeAnimation(nextAnimationLabel);
   }
   //Sad state
   else if (affectVal <= 0.4) {
@@ -311,7 +327,7 @@ function keyPressed() {
   } else if ((key == 'r') || (key == 'R')) {
     if (bKinect) {
       if (!bMirror) {
-        // vic.mirrorX(-1);
+        vic.mirrorX(-1);
         bMirror = true;
         // nextAnimationLabel = 'mirror';
         // vic.changeAnimation(nextAnimationLabel); 
