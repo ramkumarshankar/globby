@@ -6,82 +6,117 @@
 //Create a vic sprite
 var vic;
 
-//Creating animations from sprite sheets
-var sprite_sheet;
-
-//Our character's emotional state
-var affectValue = 0;
-
 //Flags to track if an animation is in progress
 var bAnimProgress = false;
+var bWalk =  true;
+var bBlink = false;
 
 //Our list of animations
 
-//Sad
-var sadBreatheAnimation;
-var sadAnimationsList = [];
-
 //Neutral
 var neutralBreatheAnimation;
+var neutralWalkAnimation;
 var neutralAnimationsList = [];
 
-//Happy
-var happyBlinkAnimation;
-var happyBreatheAnimation;
-var happyBounceAnimation;
-var happyDanceAnimation;
-var happyAnimationsList = [];
-
-//Excited
-var excitedBreatheAnimation;
-var excitedAnimationsList = [];
-
-var sadAnimationsKey = {
-  0: 'sadbreathe'
-};
-
 var neutralAnimationsKey = {
-  0: 'neutralbreathe'
-};
-
-var happyAnimationsKey = {
-  0: 'happyblink',
-  1: 'happybreathe',
-  2: 'happydance'
-  //Add more animations here
-};
-
-var excitedAnimationsKey = {
-  0: 'excitedbreathe'
-  //Add more animations here
+  0: 'neutralbreathe',
+  1: 'neutralwalk'
 };
 
 //Label of next animation
 var nextAnimationLabel;
 
-var socket = io.connect('http://localhost:8081');
-socket.on('update client', function(value) {
-  affectValue = value;
-  console.log(affectValue);
-  //Now that we have a starting state, start the draw loop
+var socket = io.connect('http://' + ipAddress + ':8081');
+socket.on('init client', function(value) {
+  //We know about this client, start animation loop
   loop();
+});
+socket.on('client walk', function(value) {
+  //Initialize the character walking across the screen
+  //TODO: 
+  //Code here!
 });
 
 function preload() {
-
+  //Neutral Animations
+  neutralBreatheAnimation = loadAnimation("./images/Neutral_Breathe/Neutral_Breathe0001.png", "./images/Neutral_Breathe/Neutral_Breathe0025.png");
+  neutralWalkAnimation = loadAnimation("./images/Neutral_Walk_InPlace/Neutral_Walk_InPlace0001.png", "./images/Neutral_Walk_InPlace/Neutral_Walk_InPlace0012.png");
 }
 
 function setup() {
   // frameRate(24);
+  //Create the sprite
+  // vic = createSprite(-200, windowHeight/2, 100, 83);
+  vic = createSprite(windowWidth/2, windowHeight/2, 600, 500);
+  
+  vic.addAnimation("neutralwalk", neutralWalkAnimation);
+  vic.addAnimation("neutralbreathe", neutralBreatheAnimation);
+  
   createCanvas(windowWidth, windowHeight);
   socket.emit('client', 'connected');
+  vic.scale = 0.3;
+  vic.position.x = windowWidth - 50;
+  vic.position.y = windowHeight/2;
+  vic.changeAnimation('neutralwalk');
   noLoop();
 }
 
 function draw() {
   background(51);
   
-  textSize(32);
-  text("word", 10, 30);
+  if (bWalk) {
+    if (vic.getAnimationLabel() == 'neutralwalk') {
+      playWalk(); 
+    }
+    if (!bBlink) {
+      checkBlink(); 
+    }
+  }
+  
+  runAnimation();
+  
+  drawSprites();
+}
 
+function runAnimation () {
+  //If there is no current animation, start the next one
+  if (bAnimProgress) {
+    vic.animation.play();
+  }
+  
+  //Check for neutral breathing
+  if (vic.getAnimationLabel() == 'neutralbreathe') {
+    if (vic.animation.getFrame() == vic.animation.getLastFrame()) {
+    resetAnimation();
+    }
+  }
+  // if (vic.animation.getFrame() == vic.animation.getLastFrame()) {
+  //   resetAnimation();
+  // } 
+}
+
+function resetAnimation() {
+    // bAnimProgress = false;
+    vic.animation.changeFrame(0);
+    nextAnimationLabel = 'neutralwalk';
+    vic.changeAnimation(nextAnimationLabel);
+}
+
+function playWalk () {
+  if ((vic.animation.getFrame() >= 4) && (vic.animation.getFrame() <= 8)) {
+    vic.velocity.x = -6;
+  }
+  else {
+    vic.velocity.x = 0;
+  }
+}
+
+function checkBlink() {
+  if (vic.position.x <= windowWidth/2) {
+    bBlink = true;
+    vic.animation.changeFrame(0);
+    nextAnimationLabel = 'neutralbreathe';
+    vic.changeAnimation(nextAnimationLabel);
+    vic.velocity.x = 0;
+  }
 }

@@ -2,6 +2,7 @@
 var express = require('express');
 var serveStatic = require('serve-static');
 var path = require('path');
+var ip = require('ip');
 
 //Socket-io server
 var server = require('http').Server(app);
@@ -22,6 +23,10 @@ var app = express();
 var vicManager = require("./js/server/vicmanager.js");
 var characterManager = new vicManager();
 
+//Module to manage secondary screens
+var clientManager = require("./js/server/clientmanager.js");
+var screenManager = new clientManager();
+
 //Keep track of the 'server' - the socket controlling vic
 var characterSocket;
 var characterSocketID = -1; //not really used now
@@ -40,7 +45,9 @@ io.on('connection', function (socket) {
   });
   socket.on('client', function() {
     console.log("we have a client");
-    socket.emit('update client', characterManager.getAffectValue());
+    screenManager.addNewClient(socket.id);
+    console.log(screenManager.clientList);
+    socket.emit('init client', 'client created');
   });
   socket.on('up', function() {
     characterManager.increaseAffectValue();
@@ -75,11 +82,11 @@ wss.on('connection', function connection(ws) {
 });
 
 app.get('/', function(req, res) {
-  res.render('pages/index', {'affectValue': characterManager.getAffectValue()});
+  res.render('pages/index', {'ipAddress': ip.address()});
 });
 
 app.get('/client', function(req, res) {
-  res.render('pages/client', {'affectValue': characterManager.getAffectValue()});
+  res.render('pages/client', {'ipAddress': ip.address()});
 });
 
 
