@@ -15,13 +15,15 @@ var bIdle = false;
 var bAnimProgress = false;
 
 //Kinect related variables
-var bKinect = true;
+var bKinect = false;
 var bSurprise = false;
 var bMirror = false;
 var bMirrorEnd;
 var mirrorDirection;
 var bFlap = false;
 
+//Walk about
+var bWalk = true;
 
 //Our list of animations
 
@@ -128,7 +130,7 @@ function preload() {
   
   sadAnimationsList.push(sadBreatheAnimation);
   
-  neutralAnimationsList.push(neutralWalkAnimation);
+  // neutralAnimationsList.push(neutralWalkAnimation);
   neutralAnimationsList.push(neutralBreatheAnimation);
   
   happyAnimationsList.push(happyBlinkAnimation);
@@ -209,6 +211,15 @@ function draw() {
     if (!bAnimProgress) {
       chooseAnimationBasedOnAffect(affectValue); 
     }
+  }
+  
+  //Walk around
+  if (bWalk) {
+    //Character walks around to different screens
+    nextAnimationLabel = 'neutralwalk';
+    vic.changeAnimation('neutralwalk');
+    playWalk();
+    checkWalk();
   }
   
   
@@ -311,6 +322,15 @@ function playWalk () {
   }
   else {
     vic.velocity.x = 0;
+  }
+}
+
+function checkWalk() {
+  if (vic.position.x < -600) {
+    socket.emit('server walk', 'complete');
+    console.log('server walk complete');
+    vic.position.x = windowWidth+600;
+    noLoop();
   }
 }
 

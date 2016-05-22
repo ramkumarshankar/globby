@@ -11,9 +11,7 @@ var bAnimProgress = false;
 var bWalk =  false;
 var bBlink = false;
 
-//Our list of animations
-
-//Neutral
+//Only need animations for the walk
 var neutralBreatheAnimation;
 var neutralWalkAnimation;
 var neutralAnimationsList = [];
@@ -29,10 +27,12 @@ var nextAnimationLabel;
 var socket = io.connect('http://' + ipAddress + ':8081');
 socket.on('init client', function(value) {
   //We know about this client, start animation loop
+  console.log('client initialized');
   loop();
 });
 socket.on('client walk', function(value) {
   //Initialize the character walking across the screen
+  console.log('received client walk');
   bWalk = true;
 });
 
@@ -43,9 +43,7 @@ function preload() {
 }
 
 function setup() {
-  // frameRate(24);
   //Create the sprite
-  // vic = createSprite(-200, windowHeight/2, 100, 83);
   vic = createSprite(windowWidth/2, windowHeight/2, 600, 500);
   
   vic.addAnimation("neutralwalk", neutralWalkAnimation);

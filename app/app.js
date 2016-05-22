@@ -57,6 +57,13 @@ io.on('connection', function (socket) {
     characterManager.decreaseAffectValue();
     socket.emit('update affect', characterManager.getAffectValue());
   });
+  socket.on('server walk', function(message) {
+    if (message == 'complete') {
+      //TODO: pick a random client for the walk
+      var clientSocket = screenManager.getClientSocketIDbyID(0);
+      io.to(clientSocket).emit('client walk', 'start');
+    }
+  });
 });
 
 wss.on('connection', function connection(ws) {
