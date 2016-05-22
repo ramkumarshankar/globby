@@ -8,7 +8,7 @@ var vic;
 
 //Flags to track if an animation is in progress
 var bAnimProgress = false;
-var bWalk =  true;
+var bWalk =  false;
 var bBlink = false;
 
 //Our list of animations
@@ -33,8 +33,7 @@ socket.on('init client', function(value) {
 });
 socket.on('client walk', function(value) {
   //Initialize the character walking across the screen
-  //TODO: 
-  //Code here!
+  bWalk = true;
 });
 
 function preload() {
@@ -55,7 +54,7 @@ function setup() {
   createCanvas(windowWidth, windowHeight);
   socket.emit('client', 'connected');
   vic.scale = 0.3;
-  vic.position.x = windowWidth - 50;
+  vic.position.x = windowWidth + 150;
   vic.position.y = windowHeight/2;
   vic.changeAnimation('neutralwalk');
   noLoop();
@@ -68,14 +67,13 @@ function draw() {
     if (vic.getAnimationLabel() == 'neutralwalk') {
       playWalk(); 
     }
-    if (!bBlink) {
-      checkBlink(); 
-    }
   }
   
   runAnimation();
   
   drawSprites();
+  
+  checkEnd();
 }
 
 function runAnimation () {
@@ -84,15 +82,22 @@ function runAnimation () {
     vic.animation.play();
   }
   
+  //Check if we're in the middle of the screen
+  if (vic.getAnimationLabel() == 'neutralwalk') {
+    if (!bBlink) {
+      if (vic.animation.getFrame() == vic.animation.getLastFrame()) {
+        checkBlink(); 
+      }
+    }
+  }
+  
   //Check for neutral breathing
   if (vic.getAnimationLabel() == 'neutralbreathe') {
     if (vic.animation.getFrame() == vic.animation.getLastFrame()) {
-    resetAnimation();
+      resetAnimation();
     }
   }
-  // if (vic.animation.getFrame() == vic.animation.getLastFrame()) {
-  //   resetAnimation();
-  // } 
+
 }
 
 function resetAnimation() {
@@ -104,7 +109,7 @@ function resetAnimation() {
 
 function playWalk () {
   if ((vic.animation.getFrame() >= 4) && (vic.animation.getFrame() <= 8)) {
-    vic.velocity.x = -6;
+    vic.velocity.x = -3;
   }
   else {
     vic.velocity.x = 0;
@@ -118,5 +123,14 @@ function checkBlink() {
     nextAnimationLabel = 'neutralbreathe';
     vic.changeAnimation(nextAnimationLabel);
     vic.velocity.x = 0;
+  }
+}
+
+function checkEnd() {
+  if (vic.position.x < -150) {
+    vic.position.x = windowWidth+150;
+    bBlink = false;
+    noLoop();
+    //TODO: socket.emit message to say walk is complete
   }
 }
