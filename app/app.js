@@ -82,6 +82,7 @@ app.get('/client', function(req, res) {
   res.render('pages/client', {'affectValue': characterManager.getAffectValue()});
 });
 
+
 app.use(serveStatic(__dirname)).listen(8082, function() {
   console.log("I'm listening on port 8082!");
 });
