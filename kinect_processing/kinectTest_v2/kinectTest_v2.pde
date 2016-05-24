@@ -73,6 +73,7 @@ color[]       userClr = new color[]{ color(255,0,0),
   PVector leftHipPosHis = new PVector();
   PVector leftKneePosHis = new PVector();
   PVector leftFootPosHis = new PVector();
+  String directionHis = "center";
 
   //TIMER FOR DIFFERENT INTERACTIONS
   int flapTimerHistory = 0;
@@ -249,20 +250,36 @@ void mirrorData(){
    int frames = 20;
    int headMoveFinalData = 0;
    
-   if((headPos.x - torsoPos.x)<0){
-    direction = "right"; 
-   } else if((headPos.x - torsoPos.x)>0){
-    direction = "left"; 
-   } else 
-     direction = "center";
-   
    if(headMovePortion > 0.1){
     headMoveFinalData = (int)(frames*((headMovePortion-0.1)/0.9)); 
    } 
    
+   if((headPos.x - torsoPos.x)<-20){
+    direction = "right"; 
+    if(direction != directionHis){
+      directionHis = direction;
+     String mirrorDataWS = "{\"event\":\"" + "mirror" + "\",\"frame\":\"" + headMoveFinalData + "\",\"direction\":\"" + direction + "\"}";
+     client.send(mirrorDataWS); 
+    }
+   } else if((headPos.x - torsoPos.x)>20){
+    direction = "left"; 
+    if(direction != directionHis){
+      directionHis = direction;
+     String mirrorDataWS = "{\"event\":\"" + "mirror" + "\",\"frame\":\"" + headMoveFinalData + "\",\"direction\":\"" + direction + "\"}";
+     client.send(mirrorDataWS); 
+    }
+   } else {
+    direction = "center";
+     
+    if(direction != directionHis){
+      directionHis = direction;
+     String mirrorDataWS = "{\"event\":\"" + "mirror" + "\",\"frame\":\"" + headMoveFinalData + "\",\"direction\":\"" + direction + "\"}";
+     client.send(mirrorDataWS); 
+    } 
+   }
+     
    String mirrorDataWS = "{\"event\":\"" + "mirror" + "\",\"frame\":\"" + headMoveFinalData + "\",\"direction\":\"" + direction + "\"}";
    println(mirrorDataWS);
-   client.send(mirrorDataWS);
 }
 
 
