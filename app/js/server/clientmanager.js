@@ -16,6 +16,12 @@ var clientManager = function () {
      self.lastClientID++;
      return client_uid;
    };
+   
+   self.selectRandomClientSocketID = function () {
+     var numClients = self.clientList.length;
+     var selectedClient = Math.floor(Math.random() * (numClients));
+     return self.clientList[selectedClient].socketID;
+   };
 
    self.getClientIdxByID = function (clientID) {
      var idx = -1;

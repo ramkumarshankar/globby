@@ -59,9 +59,13 @@ io.on('connection', function (socket) {
   });
   socket.on('server walk', function(message) {
     if (message == 'complete') {
-      //TODO: pick a random client for the walk
-      var clientSocket = screenManager.getClientSocketIDbyID(0);
+      var clientSocket = screenManager.selectRandomClientSocketID();
       io.to(clientSocket).emit('client walk', 'start');
+    }
+  });
+  socket.on('client walk', function(message) {
+    if (message == 'complete') {
+      io.to(characterSocket).emit('server walk', 'start');
     }
   });
 });
