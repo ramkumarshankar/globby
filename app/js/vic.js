@@ -97,6 +97,12 @@ socket.on('interaction', function (message) {
   // console.log(message.direction);
   console.log(message);
 });
+socket.on('server walk', function (message) {
+  if (message == 'start') {
+    console.log('server walk started');
+    loop();
+  }
+});
 
 function preload() {
   
@@ -217,7 +223,7 @@ function draw() {
   if (bWalk) {
     //Character walks around to different screens
     nextAnimationLabel = 'neutralwalk';
-    vic.changeAnimation('neutralwalk');
+    vic.changeAnimation(nextAnimationLabel);
     playWalk();
     checkWalk();
   }

@@ -7,7 +7,7 @@
 var vic;
 
 //Flags to track if an animation is in progress
-var bAnimProgress = false;
+// var bAnimProgress = false;
 var bWalk =  false;
 var bBlink = false;
 
@@ -34,6 +34,7 @@ socket.on('client walk', function(value) {
   //Initialize the character walking across the screen
   console.log('received client walk');
   bWalk = true;
+  loop();
 });
 
 function preload() {
@@ -76,9 +77,7 @@ function draw() {
 
 function runAnimation () {
   //If there is no current animation, start the next one
-  if (bAnimProgress) {
-    vic.animation.play();
-  }
+  vic.animation.play();
   
   //Check if we're in the middle of the screen
   if (vic.getAnimationLabel() == 'neutralwalk') {
@@ -115,7 +114,7 @@ function playWalk () {
 }
 
 function checkBlink() {
-  if (vic.position.x <= windowWidth/2) {
+  if (vic.position.x <= windowWidth/2+20) {
     bBlink = true;
     vic.animation.changeFrame(0);
     nextAnimationLabel = 'neutralbreathe';
@@ -125,10 +124,12 @@ function checkBlink() {
 }
 
 function checkEnd() {
-  if (vic.position.x < -150) {
-    vic.position.x = windowWidth+150;
+  if (vic.position.x < -100) {
+    vic.position.x = windowWidth+100;
     bBlink = false;
     noLoop();
+    socket.emit('client walk', 'complete');
+    console.log('client walk complete');
     //TODO: socket.emit message to say walk is complete
   }
 }
