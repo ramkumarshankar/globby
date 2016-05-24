@@ -24,6 +24,7 @@ var bFlap = false;
 
 //Walk about
 var bWalk = true;
+var bWalkCompleted = false;
 
 //Our list of animations
 
@@ -100,6 +101,7 @@ socket.on('interaction', function (message) {
 socket.on('server walk', function (message) {
   if (message == 'start') {
     console.log('server walk started');
+    bWalkCompleted = true;
     loop();
   }
 });
@@ -332,6 +334,19 @@ function playWalk () {
 }
 
 function checkWalk() {
+  //Check if vic has already visited one client
+  if (bWalkCompleted) {
+    if (vic.position.x <= windowWidth/2) {
+      bWalkCompleted = false;
+      bWalk = false;
+      bIdle = true;
+      vic.velocity.x = 0;
+      nextAnimationLabel = neutralAnimationsKey[0];
+      vic.changeAnimation(nextAnimationLabel);
+    }
+  }
+  
+  //Else vic has just started the walk
   if (vic.position.x < -600) {
     socket.emit('server walk', 'complete');
     console.log('server walk complete');
