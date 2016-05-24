@@ -265,6 +265,7 @@ void mirrorData(){
    client.send(mirrorDataWS);
 }
 
+
 void validFlap(){
   
   //LEFT HAND
@@ -446,7 +447,7 @@ void onNewUser(SimpleOpenNI curContext,int userId)
 void onLostUser(SimpleOpenNI curContext,int userId)
 {
   println("onLostUser - userId: " + userId);
-  //  client.send("lost user");
+  client.send("{\"event\":" + "\"lost user\"" + "}");
 }
 
 void onVisibleUser(SimpleOpenNI curContext,int userId)
