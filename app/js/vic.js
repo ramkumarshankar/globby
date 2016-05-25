@@ -11,11 +11,11 @@ var affectValue = 0;
 
 //Idle state
 //Flags to track if an animation is in progress
-var bIdle = false;
+var bIdle = false ;
 var bAnimProgress = false;
 
 //Kinect related variables
-var bKinect = false;
+var bKinect = true;
 var bSurprise = false;
 var bMirror = false;
 var bMirrorEnd;
@@ -23,7 +23,7 @@ var mirrorDirection;
 var bFlap = false;
 
 //Walk about
-var bWalk = true;
+var bWalk = false;
 var bWalkCompleted = false;
 
 //Our list of animations
@@ -93,10 +93,33 @@ socket.on('update affect', function (value) {
   affectValue = value;
   console.log(affectValue);
 });
+socket.on('new user', function (message) {
+  if (!bMirror) {
+    initKinect(); 
+  }
+});
+socket.on('lost user', function (message) {
+  endKinect();
+});
 socket.on('interaction', function (message) {
   // console.log(message.event);
   // console.log(message.direction);
   console.log(message);
+  if (message.event == 'mirror') {
+    if (bKinect) {
+      if (message.direction == 'left') {
+        vic.mirrorX(-1);
+        bMirror = true;
+      }
+      else if (message.direction == 'right') {
+        vic.mirrorX(1);
+        bMirror = true;
+      }
+      else if (message.direction == 'center') {
+        bMirrorEnd = true;
+      }
+    }
+  }
 });
 socket.on('server walk', function (message) {
   if (message == 'start') {
@@ -199,7 +222,7 @@ function draw() {
       if (bMirror) {
         // console.log(nextAnimationLabel);
         nextAnimationLabel = 'mirror';
-        mirrorUser('right', 1); 
+        mirrorUser(); 
       }
       else if (bFlap) {
         
@@ -318,6 +341,7 @@ function runAnimation () {
     mirrorUser('right', 1);
     return;
   }
+  
   //If we're at the last frame, set flag and go to first frame
   if (vic.animation.getFrame() == vic.animation.getLastFrame()) {
     resetAnimation();
@@ -333,20 +357,8 @@ function playWalk () {
   }
 }
 
-function checkWalk() {
-  //Check if vic has already visited one client
-  if (bWalkCompleted) {
-    if (vic.position.x <= windowWidth/2) {
-      bWalkCompleted = false;
-      bWalk = false;
-      bIdle = true;
-      vic.velocity.x = 0;
-      nextAnimationLabel = neutralAnimationsKey[0];
-      vic.changeAnimation(nextAnimationLabel);
-    }
-  }
-  
-  //Else vic has just started the walk
+function checkWalk() {  
+  //If vic is out of the frame
   if (vic.position.x < -600) {
     socket.emit('server walk', 'complete');
     console.log('server walk complete');
@@ -397,6 +409,17 @@ function resetAnimation() {
     vic.animation.changeFrame(0);
     nextAnimationLabel = '';
   }
+  //If the walk is completed, go to neutral breathe
+  if (bWalkCompleted) {
+    if (vic.position.x <= windowWidth/2) {
+      bWalkCompleted = false;
+      bWalk = false;
+      bIdle = true;
+      vic.velocity.x = 0;
+      nextAnimationLabel = neutralAnimationsKey[0];
+      vic.changeAnimation(nextAnimationLabel);
+    }
+  }
 
 }
 
@@ -404,15 +427,17 @@ function initKinect () {
   bKinect = true;
   bSurprise = false;
   affectValue = 0.7;
+  console.log("new kinect user");
 }
 
 function endKinect () {
   bKinect = false;
   bIdle = true;
   bSurprise = false;
+  console.log("kinect user left");
 }
 
-function mirrorUser(direction, state) {
+function mirrorUser() {
   if (!bMirrorEnd) {
     if (vic.animation.getFrame() == 11) {
       vic.animation.changeFrame(7);

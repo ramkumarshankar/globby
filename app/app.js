@@ -81,10 +81,22 @@ wss.on('connection', function connection(ws) {
     var msgFromProcessing = JSON.parse(message);
     console.log(msgFromProcessing);
     //Look for the type of event
-    if (msgFromProcessing.event=="mirror") {
+    //Kinect detects new user
+    if (msgFromProcessing.event=="newUser") {
+      console.log(msgFromProcessing.event);
+      io.to(characterSocket).emit('new user', 'new user');
+    }
+    //Kinect lost user
+    else if (msgFromProcessing.event=="lostUser") {
+      console.log(msgFromProcessing.event);
+      io.to(characterSocket).emit('lost user', 'lost user');
+    }
+    
+    else if (msgFromProcessing.event=="mirror") {
       console.log(msgFromProcessing.event);
       var wsMsg = {
         event: msgFromProcessing.event,
+        frame: msgFromProcessing.frame,
         direction: msgFromProcessing.direction
       };
       io.to(characterSocket).emit('interaction', wsMsg);
