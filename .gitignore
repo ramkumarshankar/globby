@@ -2,6 +2,8 @@
 # Visual Studio Code
 .vscode
 
+# Ignore our animation frames for now
+images/ 
 
 # Created by https://www.gitignore.io/api/java,node
 
