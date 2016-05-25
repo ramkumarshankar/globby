@@ -5,6 +5,9 @@ var vicmanager = function () {
   self.affectValue = 0.5;
   self.step = 0.05;
   
+  self.totalTime = 0;
+  self.timeSeated = 0;
+  
   self.getArousalValue = function () {
     return self.arousalValue;
   };
@@ -25,6 +28,20 @@ var vicmanager = function () {
     if (self.affectValue <= 0) {
       self.affectValue = self.step;
     }
+  };
+  
+  self.updateAffectValue = function (factor) {
+    self.affectValue += factor * self.step;
+    if (self.affectValue > 1) {
+      self.affectValue = 1;
+    }
+    if (self.affectValue < 0) {
+      self.affectValue = 0;
+    }
+  };
+  
+  self.updateTotalTime = function () {
+    self.totalTime++;
   };
   
   

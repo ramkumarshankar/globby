@@ -11,7 +11,7 @@ var affectValue = 0;
 
 //Idle state
 //Flags to track if an animation is in progress
-var bIdle = false ;
+var bIdle = false;
 var bAnimProgress = false;
 
 //Kinect related variables
@@ -120,6 +120,11 @@ socket.on('interaction', function (message) {
       }
     }
   }
+  if (message.event == 'flap') {
+    if (bKinect) {
+      bBounce = true;
+    }
+  }
 });
 socket.on('server walk', function (message) {
   if (message == 'start') {
@@ -224,7 +229,6 @@ function draw() {
     }
     else {
       if (bMirror) {
-        // console.log(nextAnimationLabel);
         frameRate();
         nextAnimationLabel = 'mirror';
         mirrorUser(); 
@@ -258,25 +262,6 @@ function draw() {
     playWalk();
     checkWalk();
   }
-  
-  
-  
-  // else {
-    // vic.changeAnimation('neutralwalk');
-    // vic.animation.play();
-    // playWalk();
-    // if (vic.position.x < -500)
-    // {
-    //   vic.position.x = windowWidth+500;
-    // }
-  // }
-  
-  // if (mouseX > vic.position.x) {
-    // vic.velocity.x = 4;
-  // }
-  // else if (mouseX < vic.position.x) {
-    // vic.velocity.x = -4;
-  // }
   
   if (nextAnimationLabel) {
     // Check if we have completed the animation
@@ -355,6 +340,7 @@ function runAnimation () {
 }
 
 function playWalk () {
+  //The character is jumping in the air in these frames
   if ((vic.animation.getFrame() >= 4) && (vic.animation.getFrame() <= 8)) {
     vic.velocity.x = -6;
   }

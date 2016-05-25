@@ -35,6 +35,7 @@ app.set('view engine', 'ejs');
 
 server.listen(8081);
 
+//Communication with app and secondary screens
 io.on('connection', function (socket) {
   socket.on('server', function() {
     characterSocketID = 1; //TODO? - manage clients?
@@ -70,6 +71,7 @@ io.on('connection', function (socket) {
   });
 });
 
+//Communication with processing sketch and sensors
 wss.on('connection', function connection(ws) {
   var location = url.parse(ws.upgradeReq.url, true);
   // you might use location.query.access_token to authenticate or share sessions
@@ -83,23 +85,33 @@ wss.on('connection', function connection(ws) {
     //Look for the type of event
     //Kinect detects new user
     if (msgFromProcessing.event=="newUser") {
-      console.log(msgFromProcessing.event);
       io.to(characterSocket).emit('new user', 'new user');
     }
     //Kinect lost user
     else if (msgFromProcessing.event=="lostUser") {
-      console.log(msgFromProcessing.event);
       io.to(characterSocket).emit('lost user', 'lost user');
     }
-    
+    //Mirror interaction
     else if (msgFromProcessing.event=="mirror") {
-      console.log(msgFromProcessing.event);
       var wsMsg = {
         event: msgFromProcessing.event,
         frame: msgFromProcessing.frame,
         direction: msgFromProcessing.direction
       };
       io.to(characterSocket).emit('interaction', wsMsg);
+    }
+    else if (msgFromProcessing.event=="flap") {
+      var wsMsg = {
+        event: msgFromProcessing.event,
+        status: msgFromProcessing.status
+      };
+      io.to(characterSocket).emit('interaction', wsMsg);
+    }
+    else if (msgFromProcessing.event=="arduino") {
+      var factor = (msgFromProcessing.sensor1 + msgFromProcessing.sensor1) / 2;
+      characterManager.updateTotalTime();
+      characterManager.updateAffectValue(factor);
+      socket.emit('update affect', characterManager.getAffectValue());
     }
   });
 });
