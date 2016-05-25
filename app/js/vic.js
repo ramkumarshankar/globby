@@ -20,7 +20,7 @@ var bSurprise = false;
 var bMirror = false;
 var bMirrorEnd;
 var mirrorDirection;
-var bFlap = false;
+var bBounce = false;
 
 //Walk about
 var bWalk = false;
@@ -136,6 +136,9 @@ function preload() {
   
   //Active interactions
   mirrorAnimation = loadAnimation("./images/Interaction_Mirror/Interaction_MirrorRight0001.png", "./images/Interaction_Mirror/Interaction_MirrorRight0017.png");
+  // bounceAnimation = loadAnimation("./images/Interaction_Bounce_InPlace/Interaction_Bounce020001.png", "./images/Interaction_Bounce_InPlace/Interaction_Bounce020011.png");
+  bounceAnimation = loadAnimation("./images/Interaction_Bounce/Interaction_Bounce0001.png", "./images/Interaction_Bounce/Interaction_Bounce0011.png");
+  bounceAnimation.looping=false;
   
   //Dying Animations
   dyingBreatheAnimation = loadAnimation("./images/Dying_Breathe//Dying_Breathe0001.png", "./images/Dying_Breathe//Dying_Breathe0035.png")
@@ -184,6 +187,7 @@ function setup() {
   
   //Active states
   vic.addAnimation("mirror", mirrorAnimation);
+  vic.addAnimation("bounce", bounceAnimation);
   
   //Passive states
   vic.addAnimation("dyingbreathe", dyingBreatheAnimation);
@@ -221,11 +225,13 @@ function draw() {
     else {
       if (bMirror) {
         // console.log(nextAnimationLabel);
+        frameRate();
         nextAnimationLabel = 'mirror';
         mirrorUser(); 
       }
-      else if (bFlap) {
-        
+      else if (bBounce) {
+        nextAnimationLabel = 'bounce';
+        bounceCharacter();
       }
       else {
         if (!nextAnimationLabel) {
@@ -390,7 +396,14 @@ function keyPressed() {
     }
     
   } else if ((key == 'l') || (key == 'L')) {
-    
+    if (bKinect) {
+      if (!bBounce) {
+        bBounce = true; 
+      }
+      else {
+        bBounce = false;
+      }
+    }
     
   }
   return false;
@@ -450,3 +463,29 @@ function mirrorUser() {
     bMirrorEnd = false;
   }
 }
+
+function bounceCharacter () {
+  //Granular control of our bounce, needed if we use the 'in-place' frames
+  // if ((vic.animation.getFrame() >= 2) && (vic.animation.getFrame() <= 3)) {
+  //   vic.velocity.y = -20;
+  // }
+  // else if ((vic.animation.getFrame() >= 4) && (vic.animation.getFrame() <= 5)) {
+  //   vic.velocity.y = -2;
+  // }
+  // else if ((vic.animation.getFrame() >= 6) && (vic.animation.getFrame() <= 7)) {
+  //   vic.velocity.y = 2;
+  // }
+  // else if ((vic.animation.getFrame() >= 8) && (vic.animation.getFrame() <= 9)) {
+  //   vic.velocity.y = 20;
+  // }
+  // else {
+  //   vic.velocity.y = 0;
+  // }
+  //If the bounce is complete, reset
+  if (vic.animation.getFrame() == vic.animation.getLastFrame()) {
+    vic.animation.changeFrame(0);
+    nextAnimationLabel = 'excitedbreathe';
+    bBounce = false;
+  }
+}
+
