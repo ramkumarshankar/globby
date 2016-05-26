@@ -479,6 +479,8 @@ function endKinect () {
   bKinect = false;
   bIdle = true;
   bSurprise = false;
+  bMirror = false;
+  bMirrorEnd = false;
   console.log("kinect user left");
 }
 
