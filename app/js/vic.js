@@ -11,16 +11,17 @@ var affectValue = 0;
 
 //Idle state
 //Flags to track if an animation is in progress
-var bIdle = false;
+var bIdle = true;
 var bAnimProgress = false;
 
 //Kinect related variables
-var bKinect = true;
+var bKinect = false;
 var bSurprise = false;
 var bMirror = false;
 var bMirrorEnd;
-var mirrorDirection;
 var bBounce = false;
+var bActiveWalk = false;
+var bActiveWalkEnd = false;
 
 //Walk about
 var bWalk = false;
@@ -125,6 +126,15 @@ socket.on('interaction', function (message) {
       bBounce = true;
     }
   }
+  if (message.event == 'distance') {
+    if (message.value == 'close') {
+      bActiveWalk = true;
+    } else if (message.value == 'far') {
+      if (!bActiveWalk) {
+        bActiveWalkEnd = true; 
+      }
+    }
+  }
 });
 socket.on('server walk', function (message) {
   if (message == 'start') {
@@ -208,11 +218,13 @@ function setup() {
   vic.addAnimation("excitedbreathe", excitedBreatheAnimation);
 
   //Create our canvas
-  createCanvas(windowWidth, windowHeight);
+  createCanvas(windowWidth-4, windowHeight-4);
   
   //Tell the server that we're ready
   console.log("I'm the server");
   socket.emit('server', 'connected');
+  
+  vic.scale = 0.6;
   
   noLoop();
 }
@@ -236,6 +248,10 @@ function draw() {
       else if (bBounce) {
         nextAnimationLabel = 'bounce';
         bounceCharacter();
+      }
+      else if (bActiveWalk || bActiveWalkEnd) {
+        nextAnimationLabel = neutralAnimationsKey[1];
+        activeWalk(1);
       }
       else {
         if (!nextAnimationLabel) {
@@ -391,6 +407,12 @@ function keyPressed() {
       }
     }
     
+  } else if ((key == 'w') || (key == 'W')) {
+    bActiveWalk = true;
+  } else if ((key == 'e') || (key == 'E')) {
+    if (!bActiveWalk) {
+      bActiveWalkEnd = true; 
+    }
   }
   return false;
 }
@@ -398,9 +420,9 @@ function keyPressed() {
 function resetAnimation() {
   var currentAnimationLabel = vic.getAnimationLabel();
   if (currentAnimationLabel == 'surprise') {
-    nextAnimationLabel = 'happybreathe';
+    nextAnimationLabel = happyAnimationsKey[1];
     vic.animation.changeFrame(0);
-    vic.changeAnimation('happybreathe');
+    vic.changeAnimation(nextAnimationLabel);
     bSurprise = true;
   }
   else {
@@ -472,6 +494,36 @@ function bounceCharacter () {
     vic.animation.changeFrame(0);
     nextAnimationLabel = 'excitedbreathe';
     bBounce = false;
+  }
+}
+
+function activeWalk (endScale) {
+  //The character is jumping in the air in these frames
+  if (bActiveWalkEnd) {
+    if (vic.scale > 0.6) {
+      if ((vic.animation.getFrame() >= 4) && (vic.animation.getFrame() <= 8)) {
+        vic.scale -= 0.01;
+      }
+    }
+    if (vic.scale <= 0.6) {
+      vic.scale = 0.6;
+      bActiveWalk = false;
+      bActiveWalkEnd = false;
+      nextAnimationLabel = happyAnimationsKey[1];
+    }
+  }
+  else {
+    if (vic.scale < endScale) {
+      if ((vic.animation.getFrame() >= 4) && (vic.animation.getFrame() <= 8)) {
+        vic.scale += 0.01;
+      }
+    }
+    if (vic.scale > endScale) {
+      vic.scale = endScale;
+    }
+    if (vic.scale === endScale) {
+      bActiveWalk = false;
+    }
   }
 }
 

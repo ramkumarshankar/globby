@@ -100,10 +100,19 @@ wss.on('connection', function connection(ws) {
       };
       io.to(characterSocket).emit('interaction', wsMsg);
     }
+    //Bounce interaction
     else if (msgFromProcessing.event=="flap") {
       var wsMsg = {
         event: msgFromProcessing.event,
         status: msgFromProcessing.status
+      };
+      io.to(characterSocket).emit('interaction', wsMsg);
+    }
+    //Proximity interaction
+    else if (msgFromProcessing.event=="distance") {
+      var wsMsg = {
+        event: msgFromProcessing.event,
+        value: msgFromProcessing.value
       };
       io.to(characterSocket).emit('interaction', wsMsg);
     }
