@@ -31,11 +31,16 @@ var vicmanager = function () {
   };
   
   self.updateAffectValue = function (factor) {
-    self.affectValue += factor * self.step;
-    if (self.affectValue > 1) {
-      self.affectValue = 1;
+    if (factor == 0) {
+      self.affectValue += self.step;
     }
-    if (self.affectValue < 0) {
+    else {
+      self.affectValue -= factor * self.step;  
+    }
+    if (self.affectValue > 0.8) {
+      self.affectValue = 0.8;
+    }
+    else if (self.affectValue < 0) {
       self.affectValue = 0;
     }
   };
