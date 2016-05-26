@@ -77,13 +77,18 @@ color[]       userClr = new color[]{ color(255,0,0),
 
   //TIMER FOR DIFFERENT INTERACTIONS
   int flapTimerHistory = 0;
+  int mirrorTimerHistory = 0;
+  boolean mirrorCenterSent = false;
+  
+  //distance
+  String distanceHis, distance;
   
 
 void setup()
 {
   
   try {
-    client = new WsClient( this, "ws://localhost:8080/");
+    client = new WsClient( this, "ws://10.19.244.216:8080/");
     client.connect();
   } catch ( Exception e ){
   }
@@ -150,12 +155,30 @@ void draw()
       //if the status of split is true
       //if the status of bouncing is true
       
-      //else send the mirroing data
-      validFlap();
       
-      if((millis()-flapTimerHistory)>5000){
-        mirrorData();  
-      }
+      if( torsoPos.z > 1000 && torsoPos.z < 2200 ) {
+       
+        if(torsoPos.z > 1600){
+          distance = "far";    
+        } else {
+          distance = "close"; 
+        }
+        
+        if(distance != distanceHis){
+          String distanceDataWS = "{\"event\":\"" + "distance" + "\",\"value\":\"" + distance + "\"}";
+          client.send(distanceDataWS);
+          println(distanceDataWS);
+          distanceHis = distance;
+        }
+                  
+        //else send the mirroing data
+        validFlap();              
+        
+        if((millis()-flapTimerHistory)>5000){
+          mirrorData(userList[i]);  
+        }
+         
+      }   
       
     }
     
@@ -241,7 +264,7 @@ void getJointPosition(int userId){
 }
 
 
-void mirrorData(){
+void mirrorData(int userId){
    float baseDis = dist(rightShoulderPos.x,rightShoulderPos.y, leftShoulderPos.x, leftShoulderPos.y);
    float headMove = abs(headPos.x - torsoPos.x);
    String direction; 
@@ -250,36 +273,28 @@ void mirrorData(){
    int frames = 20;
    int headMoveFinalData = 0;
    
-   if(headMovePortion > 0.1){
+   if(headMovePortion > 0.1) {
     headMoveFinalData = (int)(frames*((headMovePortion-0.1)/0.9)); 
    } 
    
-   if((headPos.x - torsoPos.x)<-20){
-    direction = "right"; 
-    if(direction != directionHis){
-      directionHis = direction;
-     String mirrorDataWS = "{\"event\":\"" + "mirror" + "\",\"frame\":\"" + headMoveFinalData + "\",\"direction\":\"" + direction + "\"}";
-     client.send(mirrorDataWS); 
-    }
-   } else if((headPos.x - torsoPos.x)>20){
-    direction = "left"; 
-    if(direction != directionHis){
-      directionHis = direction;
-     String mirrorDataWS = "{\"event\":\"" + "mirror" + "\",\"frame\":\"" + headMoveFinalData + "\",\"direction\":\"" + direction + "\"}";
-     client.send(mirrorDataWS); 
-    }
+   if((headPos.x - torsoPos.x)<-80){
+    direction = "right";
+   } else if((headPos.x - torsoPos.x)>80){
+    direction = "left";
    } else {
-    direction = "center";
-     
-    if(direction != directionHis){
-      directionHis = direction;
-     String mirrorDataWS = "{\"event\":\"" + "mirror" + "\",\"frame\":\"" + headMoveFinalData + "\",\"direction\":\"" + direction + "\"}";
-     client.send(mirrorDataWS); 
-    } 
+     direction = "center";
+   }
+ 
+   if(direction != directionHis) {
+     if (millis() - mirrorTimerHistory > 750) {
+       String mirrorDataWS = "{\"event\":\"" + "mirror" + "\",\"frame\":\"" + headMoveFinalData + "\",\"direction\":\"" + direction + "\"}";
+       client.send(mirrorDataWS);
+       mirrorTimerHistory = millis();
+       directionHis = direction; 
+     }
    }
      
-   String mirrorDataWS = "{\"event\":\"" + "mirror" + "\",\"frame\":\"" + headMoveFinalData + "\",\"direction\":\"" + direction + "\"}";
-   println(mirrorDataWS);
+   
 }
 
 
@@ -335,9 +350,39 @@ void validFlap(){
 }
 
 void mousePressed(){
- client.send("{\"event\":" + "\"new user\"" + "}"); 
+ client.send("{\"event\":" + "\"lostUser\"" + "}");
 }
 
+void keyPressed(){
+ if(key == 'n' || key == 'N'){
+  client.send("{\"event\":" + "\"newUser\"" + "}"); 
+ } else if(key == 'l' || key == 'L'){
+   client.send("{\"event\":" + "\"lostUser\"" + "}");
+ }
+ 
+ if(key == 'a'){
+    String mirrorDataWS = "{\"event\":\"" + "mirror" + "\",\"frame\":\"" + 0 + "\",\"direction\":\"" + "left" + "\"}";
+    client.send(mirrorDataWS);
+    println(millis());  
+ } 
+ 
+ if(key == 's'){
+    String mirrorDataWS = "{\"event\":\"" + "mirror" + "\",\"frame\":\"" + 0 + "\",\"direction\":\"" + "center" + "\"}";
+    client.send(mirrorDataWS);  
+     println(millis());   
+ }
+ 
+ if(key == 'd'){
+    String mirrorDataWS = "{\"event\":\"" + "mirror" + "\",\"frame\":\"" + 0 + "\",\"direction\":\"" + "right" + "\"}";
+    client.send(mirrorDataWS); 
+    println(millis());    
+ }
+ 
+ if(key == 'f'){
+    String flapDataWS = "{\"event\":\"" + "flap" + "\",\"status\":" + true + "}";
+    client.send(flapDataWS); 
+ }
+}
 
 //====================================================================================
 //====================================================================================
@@ -452,7 +497,7 @@ void onNewUser(SimpleOpenNI curContext,int userId)
       
   }
   
-  client.send("{\"event\":" + "\"new user\"" + "}");
+  client.send("{\"event\":" + "\"newUser\"" + "}");
 
   if(userId == 2){
     
@@ -473,45 +518,45 @@ void onVisibleUser(SimpleOpenNI curContext,int userId)
 }
 
 
-// -----------------------------------------------------------------
-// Keyboard events
-
-void keyPressed()
-{
-  switch(key)
-  {
-  case ' ':
-    context.setMirror(!context.mirror());
-    break;
-  }
-    
-  switch(keyCode)
-  {
-    case LEFT:
-      rotY += 0.1f;
-      break;
-    case RIGHT:
-      // zoom out
-      rotY -= 0.1f;
-      break;
-    case UP:
-      if(keyEvent.isShiftDown())
-        zoomF += 0.01f;
-      else
-        rotX += 0.1f;
-      break;
-    case DOWN:
-      if(keyEvent.isShiftDown())
-      {
-        zoomF -= 0.01f;
-        if(zoomF < 0.01)
-          zoomF = 0.01;
-      }
-      else
-        rotX -= 0.1f;
-      break;
-  }
-}
+//// -----------------------------------------------------------------
+//// Keyboard events
+//
+//void keyPressed()
+//{
+//  switch(key)
+//  {
+//  case ' ':
+//    context.setMirror(!context.mirror());
+//    break;
+//  }
+//    
+//  switch(keyCode)
+//  {
+//    case LEFT:
+//      rotY += 0.1f;
+//      break;
+//    case RIGHT:
+//      // zoom out
+//      rotY -= 0.1f;
+//      break;
+//    case UP:
+//      if(keyEvent.isShiftDown())
+//        zoomF += 0.01f;
+//      else
+//        rotX += 0.1f;
+//      break;
+//    case DOWN:
+//      if(keyEvent.isShiftDown())
+//      {
+//        zoomF -= 0.01f;
+//        if(zoomF < 0.01)
+//          zoomF = 0.01;
+//      }
+//      else
+//        rotX -= 0.1f;
+//      break;
+//  }
+//}
 
 void getBodyDirection(int userId,PVector centerPoint,PVector dir)
 {
