@@ -155,6 +155,11 @@ void draw()
       //if the status of split is true
       //if the status of bouncing is true
       
+      if(torsoPos.x > 750 || torsoPos.x < -750){
+       client.send("{\"event\":" + "\"lostUser\"" + "}");
+       println("{\"event\":" + "\"lostUser\"" + "}");
+      } 
+      
       
       if( torsoPos.z > 1000 && torsoPos.z < 2200 ) {
        
@@ -167,7 +172,7 @@ void draw()
         if(distance != distanceHis){
           String distanceDataWS = "{\"event\":\"" + "distance" + "\",\"value\":\"" + distance + "\"}";
           client.send(distanceDataWS);
-          println(distanceDataWS);
+        
           distanceHis = distance;
         }
                   
@@ -509,7 +514,7 @@ void onNewUser(SimpleOpenNI curContext,int userId)
 void onLostUser(SimpleOpenNI curContext,int userId)
 {
   println("onLostUser - userId: " + userId);
-  client.send("{\"event\":" + "\"lost user\"" + "}");
+//  client.send("{\"event\":" + "\"lost user\"" + "}");
 }
 
 void onVisibleUser(SimpleOpenNI curContext,int userId)
