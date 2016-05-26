@@ -91,8 +91,10 @@ socket.on('init server', function(value) {
   loop();
 });
 socket.on('update affect', function (value) {
-  affectValue = value;
-  console.log(affectValue);
+  if (!bKinect) {
+    affectValue = value;
+    console.log(affectValue); 
+  }
 });
 socket.on('new user', function (message) {
   if (!bMirror) {
@@ -262,11 +264,17 @@ function draw() {
     vic.changeAnimation(nextAnimationLabel);
   }
   
+  if (bIdle) {
+    if (!bAnimProgress) {
+      // walkOrAnimation(affectValue);
+    }
+  }
+  
   //Idle states
   if (bIdle) {
     bKinect = false;
     if (!bAnimProgress) {
-      chooseAnimationBasedOnAffect(affectValue); 
+      chooseAnimationBasedOnAffect(affectValue);
     }
   }
   
@@ -286,6 +294,22 @@ function draw() {
   
   drawSprites();
 
+}
+
+function walkOrAnimation(affectVal) {
+  //if the character is bored
+  if ((affectVal > 0.4) || (affectVal <= 0.6)) {
+    var probability = Math.random();
+    console.log(probability);
+    if (probability < 0.1) {
+      bWalk = true;
+      bIdle = false;
+    }
+    else {
+      bIdle = true;
+      bWalk = false;
+    }
+  }
 }
 
 function initAnimations (animationsArray) {
