@@ -155,7 +155,9 @@ void draw()
       //if the status of split is true
       //if the status of bouncing is true
       
-      if(torsoPos.x > 750 || torsoPos.x < -750){
+      println("torsoPos.x: " + torsoPos.x);
+      
+      if(torsoPos.x > 680 || torsoPos.x < -680){
        client.send("{\"event\":" + "\"lostUser\"" + "}");
        println("{\"event\":" + "\"lostUser\"" + "}");
       } 
