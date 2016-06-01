@@ -19,6 +19,8 @@ var bKinect = false;
 var bSurprise = false;
 var bMirror = false;
 var bMirrorEnd;
+var bSquat = false;
+var bSquatEnd;
 var bBounce = false;
 var bActiveWalk = false;
 var bActiveWalkEnd = false;
@@ -31,6 +33,8 @@ var bWalkCompleted = false;
 
 //Active
 var mirrorAnimation;
+var bounceAnimation;
+var squatAnimation;
 
 //Near-death
 var dyingBreatheAnimation;
@@ -130,6 +134,16 @@ socket.on('interaction', function (message) {
       }
     }
   }
+  if (message.event == 'squat') {
+    if (bKinect) {
+      if (message.status == 'true') {
+        bSquat = true;
+      }
+      else if (message.status == 'false') {
+        bSquatEnd = true;
+      } 
+    }
+  }
   if (message.event == 'flap') {
     if (bKinect) {
       bBounce = true;
@@ -163,6 +177,7 @@ function preload() {
   // bounceAnimation = loadAnimation("./images/Interaction_Bounce_InPlace/Interaction_Bounce020001.png", "./images/Interaction_Bounce_InPlace/Interaction_Bounce020011.png");
   bounceAnimation = loadAnimation("./images/Interaction_Bounce/Interaction_Bounce0001.png", "./images/Interaction_Bounce/Interaction_Bounce0011.png");
   bounceAnimation.looping=false;
+  squatAnimation = loadAnimation("./images/Interaction_Squish/Interaction_Squish0001.png", "./images/Interaction_Squish/Interaction_Squish0018.png");
   
   //Dying Animations
   dyingBreatheAnimation = loadAnimation("./images/Dying_Breathe//Dying_Breathe0001.png", "./images/Dying_Breathe//Dying_Breathe0035.png")
@@ -218,6 +233,7 @@ function setup() {
   //Active states
   vic.addAnimation("mirror", mirrorAnimation);
   vic.addAnimation("bounce", bounceAnimation);
+  vic.addAnimation("squat", squatAnimation);
   
   //Passive states
   vic.addAnimation("dyingbreathe", dyingBreatheAnimation);
@@ -261,6 +277,10 @@ function draw() {
       if (bMirror) {
         nextAnimationLabel = 'mirror';
         mirrorUser(); 
+      }
+      else if (bSquat) {
+        nextAnimationLabel = 'squat';
+        squatCharacter();
       }
       else if (bBounce) {
         nextAnimationLabel = 'bounce';
@@ -437,6 +457,15 @@ function keyPressed() {
       }
     }
     
+  } else if ((key == 's') || (key == 'S')) {
+    if (bKinect) {
+      if (!bSquat) {
+        bSquat = true;
+      } else {
+        bSquatEnd = true;
+      }
+    }
+    
   } else if ((key == 'l') || (key == 'L')) {
     if (bKinect) {
       if (!bBounce) {
@@ -518,6 +547,27 @@ function mirrorUser() {
     // nextAnimationLabel = excitedAnimationsKey[2];
     bMirror = false;
     bMirrorEnd = false;
+  }
+}
+
+
+function squatCharacter() {
+  //If we interrupted another animation, reset that
+  var currentAnimationLabel = vic.getAnimationLabel();
+  if (currentAnimationLabel != 'squat') {
+    vic.animation.changeFrame(0);
+  }
+  if (!bSquatEnd) {
+    if (vic.animation.getFrame() == 12) {
+      vic.animation.changeFrame(8);
+    }
+    return; 
+  }
+  if (vic.animation.getFrame() == vic.animation.getLastFrame()) {
+    // Skip this, move to excited idle
+    // nextAnimationLabel = excitedAnimationsKey[2];
+    bSquat = false;
+    bSquatEnd = false;
   }
 }
 
