@@ -43,6 +43,7 @@ var sadAnimationsList = [];
 //Neutral
 var neutralBreatheAnimation;
 var neutralWalkAnimation;
+var neutralYawnAnimation;
 var neutralAnimationsList = [];
 
 //Happy
@@ -65,7 +66,9 @@ var sadAnimationsKey = {
 
 var neutralAnimationsKey = {
   0: 'neutralbreathe',
-  1: 'neutralwalk'
+  1: 'neutralyawn',
+  2: 'neutralwalk'
+  
 };
 
 var happyAnimationsKey = {
@@ -166,6 +169,7 @@ function preload() {
   //Neutral Animations
   neutralBreatheAnimation = loadAnimation("./images/Neutral_Breathe/Neutral_Breathe0001.png", "./images/Neutral_Breathe/Neutral_Breathe0025.png");
   neutralWalkAnimation = loadAnimation("./images/Neutral_Walk_InPlace/Neutral_Walk_InPlace0001.png", "./images/Neutral_Walk_InPlace/Neutral_Walk_InPlace0012.png");
+  neutralYawnAnimation = loadAnimation("./images/Neutral_Yawn/Neutral_Yawn0001.png", "./images/Neutral_Yawn/Neutral_Yawn0027.png");
   // neutralWalkAnimation = loadAnimation("./images/Neutral_Walk/Neutral_Walk0001.png", "./images/Neutral_Walk/Neutral_Walk0012.png");
   
   //Happy Animations
@@ -183,6 +187,7 @@ function preload() {
   
   // neutralAnimationsList.push(neutralWalkAnimation);
   neutralAnimationsList.push(neutralBreatheAnimation);
+  neutralAnimationsList.push(neutralYawnAnimation);
   
   happyAnimationsList.push(happyBlinkAnimation);
   happyAnimationsList.push(happyBreatheAnimation);
@@ -212,6 +217,7 @@ function setup() {
   
   vic.addAnimation("neutralwalk", neutralWalkAnimation);
   vic.addAnimation("neutralbreathe", neutralBreatheAnimation);
+  vic.addAnimation("neutralyawn", neutralYawnAnimation);
   
   vic.addAnimation("happyblink", happyBlinkAnimation);
   vic.addAnimation("happybreathe", happyBreatheAnimation);
@@ -252,7 +258,7 @@ function draw() {
         bounceCharacter();
       }
       else if (bActiveWalk || bActiveWalkEnd) {
-        nextAnimationLabel = neutralAnimationsKey[1];
+        nextAnimationLabel = neutralAnimationsKey[2];
         activeWalk(1);
       }
       else {
@@ -264,11 +270,12 @@ function draw() {
     vic.changeAnimation(nextAnimationLabel);
   }
   
-  if (bIdle) {
-    if (!bAnimProgress) {
-      // walkOrAnimation(affectValue);
-    }
-  }
+  // We're disabling walk about for now, needs more testing and refinement
+  // if (bIdle) {
+  //   if (!bAnimProgress) {
+  //     walkOrAnimation(affectValue);
+  //   }
+  // }
   
   //Idle states
   if (bIdle) {
@@ -281,7 +288,7 @@ function draw() {
   //Walk around
   if (bWalk) {
     //Character walks around to different screens
-    nextAnimationLabel = 'neutralwalk';
+    nextAnimationLabel = neutralAnimationsKey[2];
     vic.changeAnimation(nextAnimationLabel);
     playWalk();
     checkWalk();
@@ -298,10 +305,10 @@ function draw() {
 
 function walkOrAnimation(affectVal) {
   //if the character is bored
-  if ((affectVal > 0.4) || (affectVal <= 0.6)) {
+  if ((affectVal > 0.4) && (affectVal <= 0.6)) {
     var probability = Math.random();
     console.log(probability);
-    if (probability < 0.1) {
+    if (probability < 0.4) {
       bWalk = true;
       bIdle = false;
     }
@@ -472,6 +479,7 @@ function initKinect () {
   bKinect = true;
   bSurprise = false;
   affectValue = 0.7;
+  socket.emit("kinect event", affectValue);
   console.log("new kinect user");
 }
 
