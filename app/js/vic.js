@@ -91,6 +91,8 @@ var excitedAnimationsKey = {
   //Add more animations here
 };
 
+var rectHeight = 150;
+
 //Label of next animation
 var nextAnimationLabel;
 
@@ -258,13 +260,19 @@ function setup() {
   console.log("I'm the server");
   socket.emit('server', 'connected');
   
-  vic.scale = 0.6;
+  vic.scale = 0.8;
+  
+  myBubble = new Bubble();
   
   noLoop();
 }
 
 function draw() {
+  clear();
   background(51);
+  // drawBackground();
+  // myBubble.run();
+  // ellipse(100,100,100,100);
   
   //Kinect available
   if (bKinect) {
@@ -288,7 +296,7 @@ function draw() {
       }
       else if (bActiveWalk || bActiveWalkEnd) {
         nextAnimationLabel = neutralAnimationsKey[2];
-        activeWalk(1);
+        activeWalk(1.2);
       }
       else {
         if (!nextAnimationLabel) {
@@ -605,13 +613,13 @@ function bounceCharacter () {
 function activeWalk (endScale) {
   //The character is jumping in the air in these frames
   if (bActiveWalkEnd) {
-    if (vic.scale > 0.6) {
+    if (vic.scale > 0.8) {
       if ((vic.animation.getFrame() >= 4) && (vic.animation.getFrame() <= 8)) {
         vic.scale -= 0.01;
       }
     }
-    if (vic.scale <= 0.6) {
-      vic.scale = 0.6;
+    if (vic.scale <= 0.8) {
+      vic.scale = 0.8;
       bActiveWalk = false;
       bActiveWalkEnd = false;
       // nextAnimationLabel = excitedAnimationsKey[2];
@@ -632,3 +640,52 @@ function activeWalk (endScale) {
   }
 }
 
+var Bubble = function() {
+  this.position = createVector(Math.floor(Math.random() * (windowWidth)), -100);
+  this.color = color(225, 225, 225);
+  this.radius = 100; 
+};
+
+Bubble.prototype.run = function() {
+  this.update();
+  this.render();
+}
+
+Bubble.prototype.update = function () {
+  this.position.y++;
+};
+
+Bubble.prototype.isDead = function () {
+  if (this.position.y > windowHeight + 100) {
+    return true;
+  }
+  return false;
+};
+
+Bubble.prototype.render = function () {
+  fill (this.color);
+  ellipse(this.position.x, this.position.y, this.radius, this.radius);
+};
+
+function drawBackground() {
+  //Let's draw some rectangles
+  noFill();
+  strokeWeight(2);
+  stroke(225);
+  //Top row
+  rect(0, 0, windowWidth/4, rectHeight);
+  rect(windowWidth/4, 0, windowWidth/2, rectHeight);
+  rect(windowWidth*0.75, 0, windowWidth/4, rectHeight);
+  //Second row
+  rect(0, rectHeight, windowWidth/2, rectHeight);
+}
+
+function stars() {
+  var x, y;
+  fill(225, 225, 225);
+  for (var i = 0; i < 100; i++) {
+    x = Math.floor(Math.random() * (windowWidth));
+    y = Math.floor(Math.random() * (windowHeight));
+    ellipse(x,y,10,10);
+  }
+}
