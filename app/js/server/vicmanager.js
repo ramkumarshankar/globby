@@ -2,8 +2,9 @@ var vicmanager = function () {
   var self = this;
   
   self.arousalValue = 0.5;
-  self.affectValue = 0.5;
-  self.step = 0.05;
+  self.affectValue = 0.8;
+  // self.step = 0.05;
+  self.step = 0.02;
   
   self.totalTime = 0;
   self.timeSeated = 0;
@@ -14,6 +15,10 @@ var vicmanager = function () {
   
   self.getAffectValue = function () {
     return self.affectValue;
+  };
+  
+  self.setAffectValue = function (value) {
+    self.affectValue = value;
   };
   
   self.increaseAffectValue = function() {
