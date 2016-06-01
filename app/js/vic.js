@@ -36,6 +36,10 @@ var mirrorAnimation;
 var bounceAnimation;
 var squatAnimation;
 
+//Sounds
+var bSoundProgress = false;
+var bounceSound;
+
 //Near-death
 var dyingBreatheAnimation;
 var dyingAnimationsList = [];
@@ -180,6 +184,8 @@ function preload() {
   bounceAnimation = loadAnimation("./images/Interaction_Bounce/Interaction_Bounce0001.png", "./images/Interaction_Bounce/Interaction_Bounce0011.png");
   bounceAnimation.looping=false;
   squatAnimation = loadAnimation("./images/Interaction_Squish/Interaction_Squish0001.png", "./images/Interaction_Squish/Interaction_Squish0018.png");
+  
+  bounceSound = loadSound("./sounds/bounce.mp3");
   
   //Dying Animations
   dyingBreatheAnimation = loadAnimation("./images/Dying_Breathe//Dying_Breathe0001.png", "./images/Dying_Breathe//Dying_Breathe0035.png")
@@ -597,6 +603,10 @@ function bounceCharacter () {
   //   vic.velocity.y = 0;
   // }
   //If we interrupted another animation, reset that
+  if (!bSoundProgress) {
+    bounceSound.play();
+    bSoundProgress = true;
+  }
   var currentAnimationLabel = vic.getAnimationLabel();
   if (currentAnimationLabel != 'bounce') {
     vic.animation.changeFrame(0);
@@ -607,6 +617,7 @@ function bounceCharacter () {
     // Skip this, go to excited idle
     // nextAnimationLabel = excitedAnimationsKey[0];
     bBounce = false;
+    bSoundProgress = false;
   }
 }
 

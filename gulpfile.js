@@ -68,6 +68,11 @@ gulp.task('vic-images', function() {
     .pipe(gulp.dest('./build/images'));
 });
 
+gulp.task('vic-sounds', function() {
+  return gulp.src('./app/sounds/**/*')
+    .pipe(gulp.dest('./build/sounds'));
+});
+
 gulp.task('vic-clean', ['vic-js'], function() {
 return del([
     // Delete unnecessary files after build
@@ -75,7 +80,7 @@ return del([
   ]);
 });
 
-gulp.task('build', ['vic-app', 'vic-views', 'vic-lib-js', 'vic-js', 'vic-server-js', 'vic-images']);
+gulp.task('build', ['vic-app', 'vic-views', 'vic-lib-js', 'vic-js', 'vic-server-js', 'vic-images', 'vic-sounds']);
 
 gulp.task('watch', function() {
   // Main app file
