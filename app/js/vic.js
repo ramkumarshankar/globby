@@ -54,6 +54,8 @@ var happyAnimationsList = [];
 
 //Excited
 var excitedBreatheAnimation;
+var excitedDanceAnimation;
+var excitedIdleAnimation;
 var excitedAnimationsList = [];
 
 var dyingAnimationsKey = {
@@ -79,7 +81,9 @@ var happyAnimationsKey = {
 };
 
 var excitedAnimationsKey = {
-  0: 'excitedbreathe'
+  0: 'excitedbreathe',
+  1: 'exciteddance',
+  2: 'excitedidle'
   //Add more animations here
 };
 
@@ -179,6 +183,8 @@ function preload() {
   
   //Excited Animations
   excitedBreatheAnimation = loadAnimation("./images/Excited_Breathe/Excited_Breathe0001.png", "./images/Excited_Breathe/Excited_Breathe0025.png");
+  excitedDanceAnimation = loadAnimation("./images/Excited_Dance/Excited_Dance0001.png", "./images/Excited_Dance/Excited_Dance0033.png");
+  excitedIdleAnimation = loadAnimation("./images/Interaction_Idle/Interaction_Idle0001.png", "./images/Interaction_Idle/Interaction_Idle0010.png");
     
   //Add them to our arrays
   dyingAnimationsList.push(dyingBreatheAnimation);
@@ -194,6 +200,8 @@ function preload() {
   happyAnimationsList.push(happyDanceAnimation);
   
   excitedAnimationsList.push(excitedBreatheAnimation);
+  excitedAnimationsList.push(excitedDanceAnimation);
+  excitedAnimationsList.push(excitedIdleAnimation);
   
   //Some housekeeping - don't autoplay and loop
   initAnimations(happyAnimationsList);
@@ -224,6 +232,8 @@ function setup() {
   vic.addAnimation("happydance", happyDanceAnimation);
   
   vic.addAnimation("excitedbreathe", excitedBreatheAnimation);
+  vic.addAnimation("exciteddance", excitedDanceAnimation);
+  vic.addAnimation("excitedidle", excitedIdleAnimation);
 
   //Create our canvas
   createCanvas(windowWidth-4, windowHeight-4);
@@ -249,7 +259,6 @@ function draw() {
     }
     else {
       if (bMirror) {
-        frameRate();
         nextAnimationLabel = 'mirror';
         mirrorUser(); 
       }
@@ -263,7 +272,7 @@ function draw() {
       }
       else {
         if (!nextAnimationLabel) {
-          nextAnimationLabel = 'happybreathe';
+          nextAnimationLabel = excitedAnimationsKey[2];
         }
       }
     }
@@ -451,7 +460,7 @@ function keyPressed() {
 function resetAnimation() {
   var currentAnimationLabel = vic.getAnimationLabel();
   if (currentAnimationLabel == 'surprise') {
-    nextAnimationLabel = happyAnimationsKey[1];
+    nextAnimationLabel = excitedAnimationsKey[1];
     vic.animation.changeFrame(0);
     vic.changeAnimation(nextAnimationLabel);
     bSurprise = true;
@@ -493,6 +502,11 @@ function endKinect () {
 }
 
 function mirrorUser() {
+  //If we interrupted another animation, reset that
+  var currentAnimationLabel = vic.getAnimationLabel();
+  if (currentAnimationLabel != 'mirror') {
+    vic.animation.changeFrame(0);
+  }
   if (!bMirrorEnd) {
     if (vic.animation.getFrame() == 11) {
       vic.animation.changeFrame(7);
@@ -500,7 +514,8 @@ function mirrorUser() {
     return; 
   }
   if (vic.animation.getFrame() == vic.animation.getLastFrame()) {
-    nextAnimationLabel = 'excitedbreathe';
+    // Skip this, move to excited idle
+    // nextAnimationLabel = excitedAnimationsKey[2];
     bMirror = false;
     bMirrorEnd = false;
   }
@@ -523,10 +538,16 @@ function bounceCharacter () {
   // else {
   //   vic.velocity.y = 0;
   // }
+  //If we interrupted another animation, reset that
+  var currentAnimationLabel = vic.getAnimationLabel();
+  if (currentAnimationLabel != 'bounce') {
+    vic.animation.changeFrame(0);
+  }
   //If the bounce is complete, reset
   if (vic.animation.getFrame() == vic.animation.getLastFrame()) {
-    vic.animation.changeFrame(0);
-    nextAnimationLabel = 'excitedbreathe';
+    // vic.animation.changeFrame(0);
+    // Skip this, go to excited idle
+    // nextAnimationLabel = excitedAnimationsKey[0];
     bBounce = false;
   }
 }
@@ -543,7 +564,7 @@ function activeWalk (endScale) {
       vic.scale = 0.6;
       bActiveWalk = false;
       bActiveWalkEnd = false;
-      nextAnimationLabel = happyAnimationsKey[1];
+      // nextAnimationLabel = excitedAnimationsKey[2];
     }
   }
   else {
