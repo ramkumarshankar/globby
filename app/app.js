@@ -58,6 +58,9 @@ io.on('connection', function (socket) {
     characterManager.decreaseAffectValue();
     socket.emit('update affect', characterManager.getAffectValue());
   });
+  socket.on('kinect event', function(value) {
+    characterManager.setAffectValue(value);
+  });
   socket.on('server walk', function(message) {
     if (message == 'complete') {
       var clientSocket = screenManager.selectRandomClientSocketID();
