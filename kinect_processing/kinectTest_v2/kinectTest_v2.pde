@@ -81,14 +81,19 @@ color[]       userClr = new color[]{ color(255,0,0),
   boolean mirrorCenterSent = false;
   
   //distance
-  String distanceHis, distance;
+  String distance;
+  float distanceHis=1700;
+  
+  //lost user
+  boolean lostUser = false;
   
 
 void setup()
 {
   
   try {
-    client = new WsClient( this, "ws://10.19.244.216:8080/");
+//    client = new WsClient( this, "ws://10.19.244.216:8080/");
+    client = new WsClient( this, "ws://localhost:8080/");
     client.connect();
   } catch ( Exception e ){
   }
@@ -153,35 +158,38 @@ void draw()
       getJointPosition(userList[i]);
       
       //if the status of split is true
-      //if the status of bouncing is true
+      //if the status of bouncing is true     
       
-      println("torsoPos.x: " + torsoPos.x);
+      //Draw the boundary
       
-      if(torsoPos.x > 680 || torsoPos.x < -680){
-       client.send("{\"event\":" + "\"lostUser\"" + "}");
-       println("{\"event\":" + "\"lostUser\"" + "}");
-      } 
+      if(!lostUser){
+       if(torsoPos.x > 680 || torsoPos.x < -680){
+         client.send("{\"event\":" + "\"lostUser\"" + "}");
+         println("{\"event\":" + "\"lostUser\"" + "}");
+         lostUser = true;
+       }  
+      }
       
-      
-      if( torsoPos.z > 1000 && torsoPos.z < 2200 ) {
-       
-        if(torsoPos.z > 1600){
-          distance = "far";    
-        } else {
-          distance = "close"; 
-        }
-        
-        if(distance != distanceHis){
-          String distanceDataWS = "{\"event\":\"" + "distance" + "\",\"value\":\"" + distance + "\"}";
+     
+      if( torsoPos.z > 1100 && torsoPos.z < 2700 ) {
+  //      println("torsoPos.z :" + torsoPos.z);
+
+        //Send far & close data
+        if(abs(torsoPos.z - distanceHis)>200){
+          distanceHis = torsoPos.z;
+          
+          double distanceRate = (distanceHis - 1100)/(2700-1100);
+          
+          String distanceDataWS = "{\"event\":\"" + "distance" + "\",\"value\":\"" + distanceRate + "\"}";
+          println(distanceDataWS);
           client.send(distanceDataWS);
-        
-          distanceHis = distance;
         }
-                  
+        
+           
         //else send the mirroing data
         validFlap();              
         
-        if((millis()-flapTimerHistory)>5000){
+        if((millis()-flapTimerHistory)>2000){
           mirrorData(userList[i]);  
         }
          
@@ -301,7 +309,6 @@ void mirrorData(int userId){
      }
    }
      
-   
 }
 
 
@@ -325,7 +332,6 @@ void validFlap(){
     //if so, send a data of flag
      if(leftHandFlap){
        if((leftHandPos.y - leftHandPosHisY)>30){
-//        println("a left hand flap!");
           String flapDataWS = "{\"event\":\"" + "flap" + "\",\"status\":" + true + "}";
           client.send(flapDataWS);
           flapTimerHistory = millis();
@@ -344,8 +350,6 @@ void validFlap(){
    
      if(rightHandFlap){
        if((rightHandPos.y - rightHandPosHisY)>30){
-//          println("a right hand flap!");
-//          println("{\"event\":\"" + "flap" + "\",\"status\":" + true + "}");
           String flapDataWS = "{\"event\":\"" + "flap" + "\",\"status\":" + true + "}";
           client.send(flapDataWS);
           flapTimerHistory = millis();
@@ -499,6 +503,7 @@ void onNewUser(SimpleOpenNI curContext,int userId)
 {
   println("onNewUser - userId: " + userId);
   println("\tstart tracking skeleton");
+  lostUser = false;
   
   if(userId > 1){
       
