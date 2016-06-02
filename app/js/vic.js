@@ -101,10 +101,15 @@ var excitedAnimationsKey = {
 //Label of next animation
 var nextAnimationLabel;
 
-//Values for the background
-//Sad colour gradients
+//Values for the backgrounds
 var sadRainSlow = [];
 var sadRainFast = [];
+
+//Insulin particles when depressed
+// var positionChange = Math.floor(Math.random() * 2) + 5;
+var insulinParticleCount = 10;
+var insulinParticles = [];
+var myinsulinparticle;
 
 var socket = io.connect('http://' + ipAddress + ':8081');
 socket.on('init server', function(value) {
@@ -285,6 +290,12 @@ function setup() {
     sadRainFast.push(new Rain(1));
   }
   
+  for (var i = 0; i < insulinParticleCount; i++) {
+    insulinParticles.push(new InsulinParticle());
+  }
+  
+  // myinsulinparticle = new InsulinParticle();
+  
   noLoop();
 }
 
@@ -387,7 +398,18 @@ function initAnimations (animationsArray) {
 
 function drawBackgroundBasedOnAffect (affectVal) {
   //Sad state and near death
-  if (affectVal <= 0.4) {
+  if (affectVal <= 0.2) {
+    frameRate(24);
+    document.body.className = 'sad';
+    push();
+    // translate(windowWidth/2, windowHeight/2);
+    for (var i=0; i<insulinParticleCount; i++) {
+      insulinParticles[i].run();
+    }
+    pop();
+  }
+  else if (affectVal <= 0.4) {
+    frameRate(60);
     // background(255,255);
     
     // document.body[0].style.background = "linear-gradient(rgb(20,118,131), rgb(0,32,95))";
@@ -403,6 +425,7 @@ function drawBackgroundBasedOnAffect (affectVal) {
   }
   //Happy and neutral state
   else if (affectVal <= 0.8) {
+    frameRate(60);
     // background(51);
     // document.body[0].style.background = "linear-gradient(rgb(92,92,92), rgb(44,44,44));";
     document.body.className = 'neutral';
@@ -411,6 +434,7 @@ function drawBackgroundBasedOnAffect (affectVal) {
   }
   //Excited state
   else if (affectVal <= 1.0) {
+    frameRate(60);
     // background(51);
     // document.body[0].style.background = "linear-gradient(rgb(197,0,130), rgb(132,14,205));";
     document.body.className = 'excited';
@@ -755,34 +779,69 @@ Rain.prototype.render = function () {
   line(this.position.x, this.position.y, this.position.x, this.position.y + 10);
 };
 
-function stars() {
-  var x, y;
-  fill(225, 225, 225);
-  for (var i = 0; i < 100; i++) {
-    x = Math.floor(Math.random() * (windowWidth));
-    y = Math.floor(Math.random() * (windowHeight));
-    ellipse(x,y,10,10);
+var InsulinParticle = function () {
+  // this.position = createVector(0,0);
+  this.position = createVector(Math.floor(Math.random() * (windowWidth)), Math.floor(Math.random() * (windowHeight)));
+  this.angle = Math.random() * (2 * Math.PI);
+  this.spread = 0.01;
+  this.angleChange = 0;  
+  this.velocity = createVector(Math.floor(Math.random() * 4) - 2, Math.floor(Math.random() * 4) - 2);
+};
+
+InsulinParticle.prototype.update = function () {
+  
+  // var random = (Math.random(2)-1) * this.spread - a;
+  this.angleChange += Math.random() * 0.0005;
+  var sign = Math.random();
+  if (sign <= 0.5) {
+    this.angle -= this.angleChange;  
+  } else {
+    this.angle += this.angleChange; 
+  }                         
+  // this.position.x += 2 * positionChange * Math.cos(this.angle);            
+  // this.position.y += 2 * positionChange * Math.sin(this.angle);
+  
+  this.position.x += this.velocity.x;
+  this.position.y += this.velocity.y;
+  
+  if (this.position.x <= 0 || this.position.x >= windowWidth) {
+     this.velocity.x *= -1;
   }
+  if (this.position.y <= 0 || this.position.y >= windowHeight) {
+     this.velocity.y *= -1;
+  }
+    
+  // console.log(this.position.x);
+  // console.log(this.position.y);
+  
 }
 
-function setGradient(x, y, w, h, c1, c2, axis) {
+InsulinParticle.prototype.render = function () {
+  fill('rgba(255, 178, 1, 0.5)');
+  noStroke();
 
-  noFill();
+  push();
+  
+  beginShape();
+  
+  translate(this.position.x, this.position.y);
+  rotate(this.angle);
+  
+  for (var theta = 0; theta < 2 * Math.PI; theta += 0.01) {
+    var rad = Math.pow(Math.pow(Math.abs(Math.cos(8 * theta/4.0) / 2), 2.6) + 
+              Math.pow(Math.abs(Math.sin(8 * theta/4.0) / 2), 2.8), -1.0/1) ;
 
-  if (axis == Y_AXIS) {  // Top to bottom gradient
-    for (var i = y; i <= y+h; i++) {
-      var inter = map(i, y, y+h, 0, 1);
-      var c = lerpColor(c1, c2, inter);
-      stroke(c);
-      line(x, i, x+w, i);
-    }
-  }  
-  else if (axis == X_AXIS) {  // Left to right gradient
-    for (var i = x; i <= x+w; i++) {
-      var inter = map(i, x, x+w, 0, 1);
-      var c = lerpColor(c1, c2, inter);
-      stroke(c);
-      line(i, y, i, y+h);
-    }
+    var x = rad * Math.cos(theta) * 7.5;
+    var y = rad * Math.sin(theta) * 7.5;
+    vertex(x,y); 
   }
+  endShape();
+  
+  pop();
+  
+}
+
+InsulinParticle.prototype.run = function () {
+  this.update();
+  this.render();
 }
