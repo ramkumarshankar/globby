@@ -119,6 +119,13 @@ wss.on('connection', function connection(ws) {
       };
       io.to(characterSocket).emit('interaction', wsMsg);
     }
+    else if (msgFromProcessing.event=="squat") {
+      var wsMsg = {
+        event: msgFromProcessing.event,
+        value: msgFromProcessing.value
+      };
+      io.to(characterSocket).emit('interaction', wsMsg);
+    }
     else if (msgFromProcessing.event=="arduino") {
       var factor = (parseInt(msgFromProcessing.sensor1) + parseInt(msgFromProcessing.sensor2)) / 2;
       characterManager.updateTotalTime();
