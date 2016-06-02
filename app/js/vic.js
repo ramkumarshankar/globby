@@ -39,6 +39,9 @@ var squatAnimation;
 //Sounds
 var bSoundProgress = false;
 var bounceSound;
+var squatSound;
+var mirrorSound;
+var walkSound;
 
 //Near-death
 var dyingBreatheAnimation;
@@ -95,10 +98,13 @@ var excitedAnimationsKey = {
   //Add more animations here
 };
 
-var rectHeight = 150;
-
 //Label of next animation
 var nextAnimationLabel;
+
+//Values for the background
+//Sad colour gradients
+var sadRainSlow = [];
+var sadRainFast = [];
 
 var socket = io.connect('http://' + ipAddress + ':8081');
 socket.on('init server', function(value) {
@@ -142,10 +148,10 @@ socket.on('interaction', function (message) {
   }
   if (message.event == 'squat') {
     if (bKinect) {
-      if (message.status == 'true') {
+      if (message.value == 'down') {
         bSquat = true;
       }
-      else if (message.status == 'false') {
+      else if (message.value == 'up') {
         bSquatEnd = true;
       } 
     }
@@ -186,6 +192,9 @@ function preload() {
   squatAnimation = loadAnimation("./images/Interaction_Squish/Interaction_Squish0001.png", "./images/Interaction_Squish/Interaction_Squish0018.png");
   
   bounceSound = loadSound("./sounds/bounce.mp3");
+  squatSound = loadSound("./sounds/squat.mp3");
+  mirrorSound = loadSound("./sounds/mirror.mp3");
+  walkSound = loadSound("./sounds/walk.mp3");
   
   //Dying Animations
   dyingBreatheAnimation = loadAnimation("./images/Dying_Breathe//Dying_Breathe0001.png", "./images/Dying_Breathe//Dying_Breathe0035.png")
@@ -232,6 +241,7 @@ function preload() {
 
 function setup() {
   // frameRate(24);
+  
   //Create the sprite
   vic = createSprite(windowWidth/2, windowHeight/2, 600, 500);
   
@@ -268,17 +278,23 @@ function setup() {
   
   vic.scale = 0.8;
   
-  myBubble = new Bubble();
+  for (var i = 0; i < 100; i++) {
+    sadRainSlow.push(new Rain(0));
+  }
+  for (var i = 0; i < 100; i++) {
+    sadRainFast.push(new Rain(1));
+  }
   
   noLoop();
 }
 
 function draw() {
   clear();
-  background(51);
-  // drawBackground();
-  // myBubble.run();
-  // ellipse(100,100,100,100);
+  // background(51);
+  noStroke();
+  
+  //TODO: draw background based on affect
+  drawBackgroundBasedOnAffect(affectValue);
   
   //Kinect available
   if (bKinect) {
@@ -366,6 +382,40 @@ function initAnimations (animationsArray) {
   for (i = 0; i < animationsArray.length; i++) {
     animationsArray[i].playing = false;
     animationsArray[i].looping = false;
+  }
+}
+
+function drawBackgroundBasedOnAffect (affectVal) {
+  //Sad state and near death
+  if (affectVal <= 0.4) {
+    // background(255,255);
+    
+    // document.body[0].style.background = "linear-gradient(rgb(20,118,131), rgb(0,32,95))";
+    document.body.className = 'sad';
+    for (var i=0; i<100; i++) {
+      sadRainSlow[i].run();
+    }
+    for (var i=0; i<100; i++) {
+      sadRainFast[i].run();
+    }
+    // document.getElementsByTagName("body")[0].style.background = "linear-gradient(rgb(20,118,131), rgb(0,32,95))";
+    // document.body.style.backgroundImage = "url('./images/SadBG.svg')";
+  }
+  //Happy and neutral state
+  else if (affectVal <= 0.8) {
+    // background(51);
+    // document.body[0].style.background = "linear-gradient(rgb(92,92,92), rgb(44,44,44));";
+    document.body.className = 'neutral';
+    // document.getElementsByTagName("body")[0].style.background = "linear-gradient(rgb(92,92,92), rgb(44,44,44));";
+    // document.body.style.backgroundImage = "url('./images/NeutralBG.svg')";
+  }
+  //Excited state
+  else if (affectVal <= 1.0) {
+    // background(51);
+    // document.body[0].style.background = "linear-gradient(rgb(197,0,130), rgb(132,14,205));";
+    document.body.className = 'excited';
+    // document.getElementsByTagName("body")[0].style.background = "linear-gradient(rgb(197,0,130), rgb(132,14,205));";
+    // document.body.style.backgroundImage = "url('./images/InteractionBG.svg')";
   }
 }
 
@@ -530,7 +580,7 @@ function resetAnimation() {
 function initKinect () {
   bKinect = true;
   bSurprise = false;
-  affectValue = 0.7;
+  affectValue = 0.9;
   socket.emit("kinect event", affectValue);
   console.log("new kinect user");
 }
@@ -541,10 +591,16 @@ function endKinect () {
   bSurprise = false;
   bMirror = false;
   bMirrorEnd = false;
+  bSquat = false;
+  bSquatEnd = false;
   console.log("kinect user left");
 }
 
 function mirrorUser() {
+  if (!bSoundProgress) {
+    mirrorSound.play();
+    bSoundProgress = true;
+  }
   //If we interrupted another animation, reset that
   var currentAnimationLabel = vic.getAnimationLabel();
   if (currentAnimationLabel != 'mirror') {
@@ -561,11 +617,16 @@ function mirrorUser() {
     // nextAnimationLabel = excitedAnimationsKey[2];
     bMirror = false;
     bMirrorEnd = false;
+    bSoundProgress = false;
   }
 }
 
 
 function squatCharacter() {
+  if (!bSoundProgress) {
+    squatSound.play();
+    bSoundProgress = true;
+  }
   //If we interrupted another animation, reset that
   var currentAnimationLabel = vic.getAnimationLabel();
   if (currentAnimationLabel != 'squat') {
@@ -582,6 +643,7 @@ function squatCharacter() {
     // nextAnimationLabel = excitedAnimationsKey[2];
     bSquat = false;
     bSquatEnd = false;
+    bSoundProgress = false;
   }
 }
 
@@ -628,11 +690,18 @@ function activeWalk (endScale) {
       if ((vic.animation.getFrame() >= 4) && (vic.animation.getFrame() <= 8)) {
         vic.scale -= 0.01;
       }
+      else {
+        if (!bSoundProgress) {
+          walkSound.play();
+          bSoundProgress = true;
+        }
+      }
     }
     if (vic.scale <= 0.8) {
       vic.scale = 0.8;
       bActiveWalk = false;
       bActiveWalkEnd = false;
+      bSoundProgress = false;
       // nextAnimationLabel = excitedAnimationsKey[2];
     }
   }
@@ -641,55 +710,50 @@ function activeWalk (endScale) {
       if ((vic.animation.getFrame() >= 4) && (vic.animation.getFrame() <= 8)) {
         vic.scale += 0.01;
       }
+      else {
+        if (!bSoundProgress) {
+          walkSound.play();
+          bSoundProgress = true;
+        }
+      }
     }
     if (vic.scale > endScale) {
       vic.scale = endScale;
     }
     if (vic.scale === endScale) {
       bActiveWalk = false;
+      bSoundProgress = false;
     }
   }
 }
 
-var Bubble = function() {
-  this.position = createVector(Math.floor(Math.random() * (windowWidth)), -100);
-  this.color = color(225, 225, 225);
-  this.radius = 100; 
-};
+var Rain = function (type) {
+  this.position = createVector(Math.floor(Math.random() * (windowWidth)), Math.floor(Math.random() * (windowHeight)));
+  this.type = type; 
+}
 
-Bubble.prototype.run = function() {
+Rain.prototype.run = function() {
   this.update();
   this.render();
 }
 
-Bubble.prototype.update = function () {
-  this.position.y++;
-};
-
-Bubble.prototype.isDead = function () {
-  if (this.position.y > windowHeight + 100) {
-    return true;
+Rain.prototype.update = function () {
+  if (this.type == 0) {
+    this.position.y++;
   }
-  return false;
+  else if (this.type == 1) {
+    this.position.y = this.position.y + 2;
+  }
+  if(this.position.y > windowHeight){
+    this.position.y = 0;
+  }
 };
 
-Bubble.prototype.render = function () {
-  fill (this.color);
-  ellipse(this.position.x, this.position.y, this.radius, this.radius);
+Rain.prototype.render = function () {
+  strokeWeight(1);
+  stroke(255, 100);
+  line(this.position.x, this.position.y, this.position.x, this.position.y + 10);
 };
-
-function drawBackground() {
-  //Let's draw some rectangles
-  noFill();
-  strokeWeight(2);
-  stroke(225);
-  //Top row
-  rect(0, 0, windowWidth/4, rectHeight);
-  rect(windowWidth/4, 0, windowWidth/2, rectHeight);
-  rect(windowWidth*0.75, 0, windowWidth/4, rectHeight);
-  //Second row
-  rect(0, rectHeight, windowWidth/2, rectHeight);
-}
 
 function stars() {
   var x, y;
@@ -698,5 +762,27 @@ function stars() {
     x = Math.floor(Math.random() * (windowWidth));
     y = Math.floor(Math.random() * (windowHeight));
     ellipse(x,y,10,10);
+  }
+}
+
+function setGradient(x, y, w, h, c1, c2, axis) {
+
+  noFill();
+
+  if (axis == Y_AXIS) {  // Top to bottom gradient
+    for (var i = y; i <= y+h; i++) {
+      var inter = map(i, y, y+h, 0, 1);
+      var c = lerpColor(c1, c2, inter);
+      stroke(c);
+      line(x, i, x+w, i);
+    }
+  }  
+  else if (axis == X_AXIS) {  // Left to right gradient
+    for (var i = x; i <= x+w; i++) {
+      var inter = map(i, x, x+w, 0, 1);
+      var c = lerpColor(c1, c2, inter);
+      stroke(c);
+      line(i, y, i, y+h);
+    }
   }
 }
