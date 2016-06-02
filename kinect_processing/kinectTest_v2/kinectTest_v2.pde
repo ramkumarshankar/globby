@@ -56,7 +56,7 @@ color[]       userClr = new color[]{ color(255,0,0),
   PVector leftFootPos = new PVector();
   
   //history instance
-  float headPosHisX, leftHandPosHisY, rightHandPosHisY;
+  float headPosHisX, leftHandPosHisY, rightHandPosHisY, headPosHisY, neckPosHisY, torsoPosHisY;
   boolean rightHandFlap, leftHandFlap;
   PVector headPosHis = new PVector();
   PVector neckPosHis = new PVector();
@@ -87,13 +87,22 @@ color[]       userClr = new color[]{ color(255,0,0),
   //lost user
   boolean lostUser = false;
   
+  //squat
+  String squatStatus = "up";
+  boolean squatDown = false;
+  float squatHeadHisY = 0;
+  
+  //calculate average height of torso
+  int avt = 0;
+  float torsoHeightAverage = 0;
+  float torsoHeightSum = 0;
 
 void setup()
 {
   
   try {
-//    client = new WsClient( this, "ws://10.19.244.216:8080/");
-    client = new WsClient( this, "ws://localhost:8080/");
+    client = new WsClient( this, "ws://10.19.247.1:8080/");
+//    client = new WsClient( this, "ws://localhost:8080/");
     client.connect();
   } catch ( Exception e ){
   }
@@ -154,7 +163,7 @@ void draw()
   for(int i=0;i<userList.length;i++)
   {
     if(context.isTrackingSkeleton(userList[i])){
-      drawSkeleton(userList[i]);
+//      drawSkeleton(userList[i]);
       getJointPosition(userList[i]);
       
       //if the status of split is true
@@ -172,24 +181,32 @@ void draw()
       
      
       if( torsoPos.z > 1100 && torsoPos.z < 2700 ) {
-  //      println("torsoPos.z :" + torsoPos.z);
 
         //Send far & close data
-        if(abs(torsoPos.z - distanceHis)>200){
+        if(abs(torsoPos.z - distanceHis)>200){          
+          
+          double distanceRate = (torsoPos.z - 1100)/(2700-1100);
+          String distanceRateStr = String.format("%.1f", distanceRate); 
+          
+          if(distanceRate >= 0.5 && ((distanceHis - 1100)/(2700-1100))<=0.5 ){
+            String distanceDataWS = "{\"event\":\"" + "distance" + "\",\"value\":\"" + "far" + "\"}";
+            client.send(distanceDataWS);
+          } else if(distanceRate <= 0.5 && ((distanceHis - 1100)/(2700-1100))>=0.5){
+            String distanceDataWS = "{\"event\":\"" + "distance" + "\",\"value\":\"" + "close" + "\"}";
+            client.send(distanceDataWS);
+          }
+          
           distanceHis = torsoPos.z;
-          
-          double distanceRate = (distanceHis - 1100)/(2700-1100);
-          
-          String distanceDataWS = "{\"event\":\"" + "distance" + "\",\"value\":\"" + distanceRate + "\"}";
-          println(distanceDataWS);
-          client.send(distanceDataWS);
+                   
         }
         
-           
+        squatData(userList[i]);
         //else send the mirroing data
-        validFlap();              
+        if(!squatDown){
+           validFlap();       
+        }       
         
-        if((millis()-flapTimerHistory)>2000){
+        if((millis()-flapTimerHistory)>2000 && !squatDown){
           mirrorData(userList[i]);  
         }
          
@@ -240,7 +257,9 @@ void getJointPosition(int userId){
   //get history data
   if(headPos != null){
    headPosHisX = headPos.x;
+   headPosHisY = headPos.y;
    neckPosHis = neckPos;
+   neckPosHisY = neckPos.y;
    rightShoulderPosHis = rightShoulderPos;
    rightElbowPosHis = rightElbowPos;
    rightHandPosHis = rightHandPos;
@@ -250,6 +269,7 @@ void getJointPosition(int userId){
    leftHandPosHis = leftHandPos;
    leftHandPosHisY = leftHandPos.y;
    torsoPosHis = torsoPos;
+   torsoPosHisY = torsoPos.y;
    rightHipPosHis = rightHipPos;
    rightKneePosHis = rightKneePos;
    rightFootPosHis = rightFootPos;
@@ -278,8 +298,37 @@ void getJointPosition(int userId){
   //detect the status of boucing and spliting
 }
 
+void squatData(int userId){    
+    //see if the user jumping
+    //headPos.x - torsoPos.x < XXX
+    //headPos.y has a sudden decre movement       
+      
+     if(abs(headPos.x - torsoPos.x)<50){
+       if ((headPosHisY - headPos.y)>25 && !squatDown){
+         String squatDataWS =  "{\"event\":\"" + "squat" + "\",\"value\":\"" + "down" + "\"}";
+         client.send(squatDataWS);
+         squatDown = true;
+         squatHeadHisY = headPosHisY;
+       } else if(squatDown){
+         if((headPos.y - squatHeadHisY)>0){
+           String squatDataWS =  "{\"event\":\"" + "squat" + "\",\"value\":\"" + "up" + "\"}";
+           client.send(squatDataWS);       
+           squatDown = false;
+         }
+       }
+      } 
+    
+}
 
 void mirrorData(int userId){
+   
+   //calculate the average height of torso;
+   if(!(abs(neckPos.y-neckPosHisY)>10 && abs(headPos.y - headPosHisY)>10 && abs(torsoPos.y - torsoPosHisY)>10)){
+     avt ++;
+     torsoHeightSum = torsoHeightSum + torsoPos.y;
+     torsoHeightAverage = torsoHeightSum/avt; 
+   }
+  
    float baseDis = dist(rightShoulderPos.x,rightShoulderPos.y, leftShoulderPos.x, leftShoulderPos.y);
    float headMove = abs(headPos.x - torsoPos.x);
    String direction; 
@@ -392,6 +441,12 @@ void keyPressed(){
  if(key == 'f'){
     String flapDataWS = "{\"event\":\"" + "flap" + "\",\"status\":" + true + "}";
     client.send(flapDataWS); 
+ }
+ 
+ if(key == 'u'){
+    String mirrorDataWS = "{\"event\":\"" + "mirror" + "\",\"frame\":\"" + 0 + "\",\"direction\":\"" + "right" + "\"}";
+    client.send(mirrorDataWS); 
+    println(millis());  
  }
 }
 
