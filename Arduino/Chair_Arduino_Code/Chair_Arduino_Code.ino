@@ -3,6 +3,7 @@
 //=========================================================
 
 // Allocating pin numbers
+int flexPin1 = A2; 
 int flexPin2 = A3;
 
 // Variable to store sensor values
