@@ -1,6 +1,6 @@
 /* --------------------------------------------------------------------------
  * SimpleOpenNI User3d Test
- * --------------------------------------------------------------------------
+ * ----V----------------------------------------------------------------------
  * Processing Wrapper for the OpenNI/Kinect 2 library
  * http://code.google.com/p/simple-openni
  * --------------------------------------------------------------------------
@@ -164,7 +164,8 @@ void draw()
   {
     if(context.isTrackingSkeleton(userList[i])){
 //      drawSkeleton(userList[i]);
-      getJointPosition(userList[i]);
+//      getJointPosition(userList[i]);
+      getJointPosition(1);
       
       //if the status of split is true
       //if the status of bouncing is true     
@@ -200,39 +201,41 @@ void draw()
                    
         }
         
-        squatData(userList[i]);
+//        squatData(userList[i]);
+        squatData(1);
         //else send the mirroing data
         if(!squatDown){
            validFlap();       
         }       
         
-        if((millis()-flapTimerHistory)>2000 && !squatDown){
-          mirrorData(userList[i]);  
+        if((millis()-flapTimerHistory)>2000 && !squatDown){          
+//          mirrorData(userList[i]);  
+          mirrorData(1);
         }
          
       }   
       
     }
     
-    // draw the center of mass
-    if(context.getCoM(userList[i],com))
-    {
-      stroke(100,255,0);
-      strokeWeight(1);
-      beginShape(LINES);
-        vertex(com.x - 15,com.y,com.z);
-        vertex(com.x + 15,com.y,com.z);
-        
-        vertex(com.x,com.y - 15,com.z);
-        vertex(com.x,com.y + 15,com.z);
-
-        vertex(com.x,com.y,com.z - 15);
-        vertex(com.x,com.y,com.z + 15);
-        endShape();
-      
-      fill(0,255,100);
-      text(Integer.toString(userList[i]),com.x,com.y,com.z);
-    }      
+//    // draw the center of mass
+//    if(context.getCoM(userList[i],com))
+//    {
+//      stroke(100,255,0);
+//      strokeWeight(1);
+//      beginShape(LINES);
+//        vertex(com.x - 15,com.y,com.z);
+//        vertex(com.x + 15,com.y,com.z);
+//        
+//        vertex(com.x,com.y - 15,com.z);
+//        vertex(com.x,com.y + 15,com.z);
+//
+//        vertex(com.x,com.y,com.z - 15);
+//        vertex(com.x,com.y,com.z + 15);
+//        endShape();
+//      
+//      fill(0,255,100);
+//      text(Integer.toString(userList[i]),com.x,com.y,com.z);
+//    }      
   }    
  
   // draw the kinect cam
@@ -444,9 +447,9 @@ void keyPressed(){
  }
  
  if(key == 'u'){
-    String mirrorDataWS = "{\"event\":\"" + "mirror" + "\",\"frame\":\"" + 0 + "\",\"direction\":\"" + "right" + "\"}";
-    client.send(mirrorDataWS); 
-    println(millis());  
+    String squatDataWS =  "{\"event\":\"" + "squat" + "\",\"value\":\"" + "up" + "\"}";
+    client.send(squatDataWS);       
+    squatDown = false;
  }
 }
 
