@@ -130,7 +130,6 @@ wss.on('connection', function connection(ws) {
       var factor = (parseInt(msgFromProcessing.sensor1) + parseInt(msgFromProcessing.sensor2)) / 2;
       characterManager.updateTotalTime();
       characterManager.updateAffectValue(factor);
-      console.log(characterManager.getAffectValue());
       io.to(characterSocket).emit('update affect', characterManager.getAffectValue());
     }
   });

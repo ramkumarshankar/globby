@@ -402,7 +402,6 @@ function drawBackgroundBasedOnAffect (affectVal) {
     frameRate(24);
     document.body.className = 'sad';
     push();
-    // translate(windowWidth/2, windowHeight/2);
     for (var i=0; i<insulinParticleCount; i++) {
       insulinParticles[i].run();
     }
@@ -410,9 +409,6 @@ function drawBackgroundBasedOnAffect (affectVal) {
   }
   else if (affectVal <= 0.4) {
     frameRate(60);
-    // background(255,255);
-    
-    // document.body[0].style.background = "linear-gradient(rgb(20,118,131), rgb(0,32,95))";
     document.body.className = 'sad';
     for (var i=0; i<100; i++) {
       sadRainSlow[i].run();
@@ -420,26 +416,16 @@ function drawBackgroundBasedOnAffect (affectVal) {
     for (var i=0; i<100; i++) {
       sadRainFast[i].run();
     }
-    // document.getElementsByTagName("body")[0].style.background = "linear-gradient(rgb(20,118,131), rgb(0,32,95))";
-    // document.body.style.backgroundImage = "url('./images/SadBG.svg')";
   }
   //Happy and neutral state
   else if (affectVal <= 0.8) {
     frameRate(60);
-    // background(51);
-    // document.body[0].style.background = "linear-gradient(rgb(92,92,92), rgb(44,44,44));";
     document.body.className = 'neutral';
-    // document.getElementsByTagName("body")[0].style.background = "linear-gradient(rgb(92,92,92), rgb(44,44,44));";
-    // document.body.style.backgroundImage = "url('./images/NeutralBG.svg')";
   }
   //Excited state
   else if (affectVal <= 1.0) {
     frameRate(60);
-    // background(51);
-    // document.body[0].style.background = "linear-gradient(rgb(197,0,130), rgb(132,14,205));";
     document.body.className = 'excited';
-    // document.getElementsByTagName("body")[0].style.background = "linear-gradient(rgb(197,0,130), rgb(132,14,205));";
-    // document.body.style.backgroundImage = "url('./images/InteractionBG.svg')";
   }
 }
 

@@ -8,7 +8,7 @@ var vicmanager = function () {
   
   self.totalTime = 0;
   self.timeSeated = 0;
-  
+    
   self.getArousalValue = function () {
     return self.arousalValue;
   };
